@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Catálogo Online - André Waldige</title>
+    <meta name="description" content="Catálogo online profissional criado por André Waldige - Desenvolvedor Web Freelancer.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Catálogo Online</h1>
+            <p>Sua vitrine digital, elegante e funcional.</p>
+        </div>
+    </header>
+
+    <main>
+        <section id="search-section">
+            <h2>Encontrar Produtos</h2>
+            <div class="search-bar">
+                <label for="category-filter" class="visually-hidden">Filtrar por categoria</label>
+                <select id="category-filter">
+                    <option value="all">Todas as Categorias</option>
+                    <option value="Feminino">Feminino</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Infantil">Infantil</option>
+                    <option value="Beleza">Beleza</option>
+                    <option value="Jeans">Jeans</option>
+                    <option value="Calçados">Calçados</option>
+                    <option value="Esportivo">Esportivo</option>
+                    <option value="Moda Praia">Moda Praia</option>
+                    <option value="Moda Íntima">Moda Íntima</option>
+                </select>
+                <input type="text" id="search-input" placeholder="Digite o nome ou descrição do produto...">
+                
+                <input type="number" id="min-price-input" placeholder="Preço Mín." min="0" step="0.01">
+                <input type="number" id="max-price-input" placeholder="Preço Máx." min="0" step="0.01">
+                <input type="number" id="min-stock-input" placeholder="Estoque Mín." min="0">
+                <button id="search-button" class="button button-primary">Buscar</button>
+                <button id="clear-search-button" class="button button-secondary">Limpar Busca</button>
+            </div>
+        </section>
+        
+        <section id="product-list">
+            <h2>Nossos Produtos em Destaque</h2>
+            <div class="products-container" id="products-container">
+                </div>
+        </section>
+
+        ---
+
+        <section id="shopping-cart-section" class="hidden">
+            <h2>Seu Carrinho de Compras (<span id="cart-item-count">0</span> itens)</h2>
+            <div class="cart-items-container" id="cart-items-container">
+                <p id="empty-cart-message">Seu carrinho está vazio.</p>
+            </div>
+            <div class="cart-summary">
+                <h3>Total do Carrinho: <span id="cart-total">R$ 0,00</span></h3>
+                <button id="clear-cart-button" class="button button-danger">Esvaziar Carrinho</button>
+                <button id="checkout-button" class="button button-success">Finalizar Compra</button>
+            </div>
+        </section>
+        ---
+
+        <section id="pagination-section">
+            <div class="pagination-controls" id="pagination-controls">
+                </div>
+        </section>
+
+        <section id="add-product-section">
+            <h2>Gerenciar Produtos (Admin)</h2>
+            <button id="show-add-form" class="button button-primary">Adicionar Novo Produto</button>
+
+            <form id="add-product-form">
+                <h3 id="productFormTitle">Adicionar/Editar Produto</h3>
+                <input type="hidden" id="product-id"> 
+                
+                <label for="name">Nome do Produto:</label>
+                <input type="text" id="name" required>
+
+                <label for="description">Descrição:</label>
+                <textarea id="description"></textarea>
+
+                <label for="price">Preço:</label>
+                <input type="number" id="price" step="0.01" required>
+
+                <label for="imageUrl">URL da Imagem:</label>
+                <input type="text" id="imageUrl">
+
+                <label for="stock">Estoque (opcional):</label>
+                <input type="number" id="stock" value="0">
+
+                <label for="category">Categoria:</label>
+                <select id="category" required>
+                    <option value="">Selecione uma categoria</option>
+                    <option value="Feminino">Feminino</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Infantil">Infantil</option>
+                    <option value="Beleza">Beleza</option>
+                    <option value="Jeans">Jeans</option>
+                    <option value="Calçados">Calçados</option>
+                    <option value="Esportivo">Esportivo</option>
+                    <option value="Moda Praia">Moda Praia</option>
+                    <option value="Moda Íntima">Moda Íntima</option>
+                </select>
+                <button type="submit" class="button button-success">Salvar Produto</button>
+                <button type="button" id="cancel-form" class="button button-secondary">Cancelar</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; <span id="current-year"></span> Catálogo Online por André Waldige. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
