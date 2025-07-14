@@ -5,8 +5,8 @@ require('dotenv').config(); // Carrega as variáveis de ambiente do .env
 console.log('🔍 URI carregada do .env:', process.env.MONGODB_URI);
 
 // Importa as rotas
-const productRoutes = require('./routes/productRoutes');
-const authRoutes = require('./routes/authRoutes'); // Novas rotas de autenticação
+const productRoutes = require('./backend/routes/productRoutes');
+const authRoutes = require('./backend/routes/authRoutes');
 
 const app = express();
 
