@@ -1,7 +1,7 @@
 const API_BASE_URL = 'https://catalogo-backend-e14g.onrender.com';
 
 async function fetchProdutos(queryParams = '') {
-    const url = `${API_BASE_URL}/produtos${queryParams}`;
+    const url = `${API_BASE_URL}/api/products${queryParams}`;
     try {
         const response = await fetch(url);
         const produtos = await response.json();
