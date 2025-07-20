@@ -5,7 +5,7 @@ async function fetchProdutos(queryParams = '') {
     try {
         const response = await fetch(url);
         const produtos = await response.json();
-        renderProdutos(produtos);
+        renderProdutos(produtos.products || []); // pega a lista real
     } catch (error) {
         console.error('Erro ao buscar produtos:', error);
     }
@@ -42,7 +42,7 @@ document.getElementById('search-button').addEventListener('click', () => {
 
     let query = '?';
     if (categoria !== 'all') query += `category=${categoria}&`;
-    if (nome) query += `name=${nome}&`;
+    if (nome) query += `search=${encodeURIComponent(nome)}&`;
     if (precoMin) query += `minPrice=${precoMin}&`;
     if (precoMax) query += `maxPrice=${precoMax}&`;
     if (estoqueMin) query += `minStock=${estoqueMin}&`;
