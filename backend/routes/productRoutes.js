@@ -1,134 +1,93 @@
 const express = require('express');
 const router = express.Router();
-const Product = require('../models/Product'); // Importa o modelo correto
+const Product = require('../models/Product');
 
-// Buscar todos os produtos com filtros, paginação e busca
+// GET /api/products?category=&search=&minPrice=&maxPrice=&minStock=&page=&limit=
 router.get('/', async (req, res) => {
-    try {
-        const {
-            search,
-            category,
-            minPrice,
-            maxPrice,
-            minStock,
-            page = 1,
-            limit = 9
-        } = req.query;
+  try {
+    const {
+      category,
+      search,
+      minPrice,
+      maxPrice,
+      minStock,
+      page = 1,
+      limit = 10,
+    } = req.query;
 
-        const query = {};
+    const filter = {};
 
-        // Busca por nome ou descrição
-        if (search) {
-            query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { description: { $regex: search, $options: 'i' } }
-            ];
-        }
+    if (category && category !== 'all') filter.category = category;
 
-        // Filtro por categoria (exceto "all")
-        if (category && category !== 'all') {
-            query.category = category;
-        }
-
-        // Filtro por preço mínimo e máximo
-        if (minPrice !== undefined) {
-            query.price = { ...query.price, $gte: parseFloat(minPrice) };
-        }
-        if (maxPrice !== undefined) {
-            query.price = { ...query.price, $lte: parseFloat(maxPrice) };
-        }
-
-        // Filtro por estoque mínimo
-        if (minStock !== undefined) {
-            query.stock = { $gte: parseInt(minStock, 10) };
-        }
-
-        // Contar total de produtos que satisfazem os filtros
-        const totalProducts = await Product.countDocuments(query);
-
-        // Calcular total de páginas
-        const totalPages = Math.ceil(totalProducts / limit);
-
-        // Buscar produtos paginados
-        const products = await Product.find(query)
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit));
-
-        // Retornar resposta com produtos e dados da paginação
-        res.status(200).json({
-            products,
-            totalPages,
-            currentPage: parseInt(page),
-            totalProducts
-        });
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao buscar produtos', error: error.message });
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
     }
+
+    if (minPrice) filter.price = { ...filter.price, $gte: Number(minPrice) };
+    if (maxPrice) filter.price = { ...filter.price, $lte: Number(maxPrice) };
+    if (minStock) filter.stock = { $gte: Number(minStock) };
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const totalCount = await Product.countDocuments(filter);
+    const products = await Product.find(filter).skip(skip).limit(Number(limit));
+
+    res.json({ products, totalCount });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao buscar produtos' });
+  }
 });
 
-// Adicionar novo produto
-router.post('/', async (req, res) => {
-    const { name, description, price, imageUrl, stock, category } = req.body;
-    try {
-        const product = new Product({
-            name,
-            description,
-            price,
-            imageUrl,
-            stock,
-            category
-        });
-
-        const newProduct = await product.save();
-        res.status(201).json(newProduct);
-    } catch (err) {
-        res.status(400).json({ message: 'Erro ao adicionar produto', error: err.message });
-    }
-});
-
-// Atualizar produto
-router.put('/:id', async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
-        if (!product) return res.status(404).json({ message: 'Produto não encontrado' });
-
-        product.name = req.body.name || product.name;
-        product.description = req.body.description || product.description;
-        product.price = req.body.price || product.price;
-        product.imageUrl = req.body.imageUrl || product.imageUrl;
-        product.stock = req.body.stock !== undefined ? req.body.stock : product.stock;
-        product.category = req.body.category || product.category;
-
-        const updatedProduct = await product.save();
-        res.json(updatedProduct);
-    } catch (err) {
-        res.status(400).json({ message: 'Erro ao atualizar produto', error: err.message });
-    }
-});
-
-// Excluir produto
-router.delete('/:id', async (req, res) => {
-    try {
-        const result = await Product.deleteOne({ _id: req.params.id });
-        if (result.deletedCount === 0) {
-            return res.status(404).json({ message: 'Produto não encontrado para exclusão' });
-        }
-        res.json({ message: 'Produto excluído com sucesso!' });
-    } catch (err) {
-        res.status(500).json({ message: 'Erro ao excluir produto', error: err.message });
-    }
-});
-
-// Buscar produto por ID
+// GET /api/products/:id
 router.get('/:id', async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
-        if (!product) return res.status(404).json({ message: 'Produto não encontrado' });
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ error: 'Produto não encontrado' });
+    res.json(product);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao buscar produto' });
+  }
+});
 
-        res.json(product);
-    } catch (err) {
-        res.status(500).json({ message: 'Erro ao buscar produto', error: err.message });
-    }
+// POST /api/products
+router.post('/', async (req, res) => {
+  try {
+    const product = new Product(req.body);
+    await product.save();
+    res.status(201).json(product);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Erro ao criar produto' });
+  }
+});
+
+// PUT /api/products/:id
+router.put('/:id', async (req, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!product) return res.status(404).json({ error: 'Produto não encontrado' });
+    res.json(product);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Erro ao atualizar produto' });
+  }
+});
+
+// DELETE /api/products/:id
+router.delete('/:id', async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) return res.status(404).json({ error: 'Produto não encontrado' });
+    res.json({ message: 'Produto excluído com sucesso' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao excluir produto' });
+  }
 });
 
 module.exports = router;
