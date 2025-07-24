@@ -12,11 +12,12 @@ async function fetchProdutos(queryParams = '') {
         const response = await fetch(url);
         const data = await response.json();
 
-        // data.products = array de produtos retornados
-        // data.currentPage, data.totalPages da paginação no backend
+        // Define página atual com base na query
+        currentPage = parseInt((new URLSearchParams(queryParams)).get('page')) || 1;
 
-        currentPage = data.currentPage || 1;
-        totalPages = data.totalPages || 1;
+        // Calcula total de páginas com base no totalCount retornado pelo backend
+        const totalCount = data.totalCount || data.products.length;
+        totalPages = Math.ceil(totalCount / limit);
 
         renderProdutos(data.products || []);
         renderPaginacao();
@@ -53,9 +54,8 @@ function renderPaginacao() {
     const paginacaoContainer = document.getElementById('pagination');
     paginacaoContainer.innerHTML = '';
 
-    if (totalPages <= 1) return; // Não mostra paginação se só uma página
+    if (totalPages <= 1) return;
 
-    // Botão anterior
     const btnPrev = document.createElement('button');
     btnPrev.className = 'pagination-button';
     btnPrev.textContent = 'Anterior';
@@ -68,7 +68,6 @@ function renderPaginacao() {
     };
     paginacaoContainer.appendChild(btnPrev);
 
-    // Botões de páginas (1, 2, 3...)
     for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement('button');
         btn.className = 'pagination-button';
@@ -84,7 +83,6 @@ function renderPaginacao() {
         paginacaoContainer.appendChild(btn);
     }
 
-    // Botão próximo
     const btnNext = document.createElement('button');
     btnNext.className = 'pagination-button';
     btnNext.textContent = 'Próximo';
@@ -98,7 +96,7 @@ function renderPaginacao() {
     paginacaoContainer.appendChild(btnNext);
 }
 
-// Função que monta a query com filtros + paginação e chama fetchProdutos
+// Monta a query de filtros + paginação e chama fetchProdutos
 function buscarComFiltros(page = 1) {
     const categoria = document.getElementById('category-filter').value;
     const nome = document.getElementById('search-input').value.trim();
@@ -166,7 +164,7 @@ function atualizarCarrinho() {
     totalSpan.textContent = `R$ ${total.toFixed(2)}`;
 }
 
-// Remove produto do carrinho
+// Remove item do carrinho
 function removerDoCarrinho(id) {
     carrinho = carrinho.filter(item => item.id !== id);
     atualizarCarrinho();
@@ -175,17 +173,15 @@ function removerDoCarrinho(id) {
 
 // Mostra o carrinho
 function mostrarCarrinho() {
-    const carrinhoSection = document.getElementById('shopping-cart-section');
-    carrinhoSection.classList.remove('hidden');
+    document.getElementById('shopping-cart-section').classList.remove('hidden');
 }
 
 // Esconde o carrinho
 function esconderCarrinho() {
-    const carrinhoSection = document.getElementById('shopping-cart-section');
-    carrinhoSection.classList.add('hidden');
+    document.getElementById('shopping-cart-section').classList.add('hidden');
 }
 
-// Eventos dos botões Limpar e Finalizar compra
+// Eventos dos botões Limpar e Finalizar
 document.getElementById('clear-cart-button').addEventListener('click', () => {
     carrinho = [];
     atualizarCarrinho();
@@ -203,7 +199,7 @@ document.getElementById('checkout-button').addEventListener('click', () => {
     esconderCarrinho();
 });
 
-// Eventos de busca
+// Busca e filtro
 document.getElementById('search-button').addEventListener('click', () => {
     currentPage = 1;
     buscarComFiltros(currentPage);
