@@ -1,14 +1,18 @@
 const API_BASE_URL = 'https://catalogo-backend-e14g.onrender.com';
 
 let carrinho = [];
+let paginaAtual = 1;
+let filtrosAtuais = '';
+const LIMITE_POR_PAGINA = 9;
 
-// Função para buscar produtos
-async function fetchProdutos(queryParams = '') {
-    const url = `${API_BASE_URL}/api/products${queryParams}`;
+// Função para buscar produtos com paginação
+async function fetchProdutos(queryParams = '', page = 1) {
+    const url = `${API_BASE_URL}/api/products${queryParams}&page=${page}&limit=${LIMITE_POR_PAGINA}`;
     try {
         const response = await fetch(url);
         const produtos = await response.json();
         renderProdutos(produtos.products || []);
+        renderPaginacao(produtos.totalPages || 1, page);
     } catch (error) {
         console.error('Erro ao buscar produtos:', error);
     }
@@ -39,7 +43,6 @@ function renderProdutos(produtos) {
 
 // Adiciona produto ao carrinho
 function adicionarAoCarrinho(id, nome, preco, imagem) {
-    // Verifica se produto já está no carrinho
     const produtoExistente = carrinho.find(item => item.id === id);
     if (produtoExistente) {
         produtoExistente.quantidade += 1;
@@ -95,26 +98,20 @@ function removerDoCarrinho(id) {
     if (carrinho.length === 0) esconderCarrinho();
 }
 
-// Mostra a seção do carrinho
+// Mostra e esconde a seção do carrinho
 function mostrarCarrinho() {
-    const carrinhoSection = document.getElementById('shopping-cart-section');
-    carrinhoSection.classList.remove('hidden');
+    document.getElementById('shopping-cart-section').classList.remove('hidden');
 }
-
-// Esconde a seção do carrinho
 function esconderCarrinho() {
-    const carrinhoSection = document.getElementById('shopping-cart-section');
-    carrinhoSection.classList.add('hidden');
+    document.getElementById('shopping-cart-section').classList.add('hidden');
 }
 
-// Botão para limpar o carrinho
+// Limpar e finalizar carrinho
 document.getElementById('clear-cart-button').addEventListener('click', () => {
     carrinho = [];
     atualizarCarrinho();
     esconderCarrinho();
 });
-
-// Botão para finalizar compra (aqui só um alert)
 document.getElementById('checkout-button').addEventListener('click', () => {
     if (carrinho.length === 0) {
         alert('Seu carrinho está vazio!');
@@ -126,7 +123,7 @@ document.getElementById('checkout-button').addEventListener('click', () => {
     esconderCarrinho();
 });
 
-// Eventos para busca e limpar busca (mantendo o que já tinha)
+// Busca com filtros e paginação
 document.getElementById('search-button').addEventListener('click', () => {
     const categoria = document.getElementById('category-filter').value;
     const nome = document.getElementById('search-input').value.trim();
@@ -141,20 +138,44 @@ document.getElementById('search-button').addEventListener('click', () => {
     if (precoMax) query += `maxPrice=${precoMax}&`;
     if (estoqueMin) query += `minStock=${estoqueMin}&`;
 
-    fetchProdutos(query);
+    filtrosAtuais = query;
+    paginaAtual = 1;
+    fetchProdutos(filtrosAtuais, paginaAtual);
 });
 
+// Limpar filtros
 document.getElementById('clear-search-button').addEventListener('click', () => {
     document.getElementById('search-input').value = '';
     document.getElementById('min-price-input').value = '';
     document.getElementById('max-price-input').value = '';
     document.getElementById('min-stock-input').value = '';
     document.getElementById('category-filter').value = 'all';
-    fetchProdutos();
+    filtrosAtuais = '?';
+    paginaAtual = 1;
+    fetchProdutos(filtrosAtuais, paginaAtual);
 });
 
+// Paginação: renderiza os botões
+function renderPaginacao(totalPages, currentPage) {
+    const paginacaoContainer = document.getElementById('pagination');
+    paginacaoContainer.innerHTML = '';
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = i === currentPage ? 'active' : '';
+        btn.addEventListener('click', () => {
+            paginaAtual = i;
+            fetchProdutos(filtrosAtuais, paginaAtual);
+        });
+        paginacaoContainer.appendChild(btn);
+    }
+}
+
+// Carrega tudo ao iniciar
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('current-year').textContent = new Date().getFullYear();
-    fetchProdutos();
+    filtrosAtuais = '?';
+    fetchProdutos(filtrosAtuais, paginaAtual);
     esconderCarrinho();
 });
