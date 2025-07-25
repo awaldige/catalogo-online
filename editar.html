@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Editar Produto</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .voltar {
+      margin-top: 10px;
+      background-color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Editar Produto</h1>
+
+  <form id="formEditar">
+    <label for="name">Nome:</label>
+    <input type="text" id="name" name="name" required />
+
+    <label for="description">Descrição:</label>
+    <textarea id="description" name="description" rows="3" required></textarea>
+
+    <label for="imageUrl">URL da Imagem:</label>
+    <input type="url" id="imageUrl" name="imageUrl" required />
+
+    <label for="price">Preço:</label>
+    <input type="number" id="price" name="price" step="0.01" required />
+
+    <label for="stock">Estoque:</label>
+    <input type="number" id="stock" name="stock" required />
+
+    <button type="submit">Salvar Alterações</button>
+    <button type="button" class="voltar" onclick="window.location.href='gerenciar.html'">Cancelar</button>
+  </form>
+
+  <script>
+    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+    if (!usuario || usuario.tipo !== 'admin') {
+      alert("Acesso restrito a administradores.");
+      window.location.href = "/";
+    }
+
+    const API_BASE_URL = 'https://catalogo-backend-e14g.onrender.com';
+    const urlParams = new URLSearchParams(window.location.search);
+    const produtoId = urlParams.get('id');
+
+    if (!produtoId) {
+      alert('ID do produto não encontrado.');
+      window.location.href = 'gerenciar.html';
+    }
+
+    async function carregarProduto() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/products/${produtoId}`);
+        if (!response.ok) throw new Error('Produto não encontrado');
+        const produto = await response.json();
+
+        document.getElementById('name').value = produto.name;
+        document.getElementById('description').value = produto.description;
+        document.getElementById('imageUrl').value = produto.imageUrl;
+        document.getElementById('price').value = produto.price;
+        document.getElementById('stock').value = produto.stock;
+
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao carregar o produto.');
+        window.location.href = 'gerenciar.html';
+      }
+    }
+
+    document.getElementById('formEditar').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const produtoAtualizado = {
+        name: document.getElementById('name').value,
+        description: document.getElementById('description').value,
+        imageUrl: document.getElementById('imageUrl').value,
+        price: parseFloat(document.getElementById('price').value),
+        stock: parseInt(document.getElementById('stock').value)
+      };
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/products/${produtoId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${usuario.token}`
+          },
+          body: JSON.stringify(produtoAtualizado)
+        });
+
+        if (response.ok) {
+          alert('Produto atualizado com sucesso!');
+          window.location.href = 'gerenciar.html';
+        } else {
+          const erro = await response.json();
+          alert('Erro ao atualizar: ' + (erro.message || 'Erro desconhecido.'));
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar produto:', error);
+        alert('Erro ao atualizar produto.');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', carregarProduto);
+  </script>
+
+</body>
+</html>
