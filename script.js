@@ -1,213 +1,348 @@
-const apiUrl = "https://catalogo-backend-e14g.onrender.com/api/products";
-const token = localStorage.getItem("token");
+const API_BASE_URL = 'https://catalogo-backend-e14g.onrender.com';
 
-// ========== ELEMENTOS ==========
-const formAddProduct = document.getElementById("add-product-form");
-const showAddFormBtn = document.getElementById("show-add-form");
-const cancelFormBtn = document.getElementById("cancel-form");
-const productFormTitle = document.getElementById("productFormTitle");
-const containerProdutos = document.getElementById("products-container");
+let carrinho = [];
+let currentPage = 1;
+let totalPages = 1;
+const limit = 9; // Itens por página
 
-const categoryFilter = document.getElementById("category-filter");
-const searchInput = document.getElementById("search-input");
-const minPriceInput = document.getElementById("min-price-input");
-const maxPriceInput = document.getElementById("max-price-input");
-const minStockInput = document.getElementById("min-stock-input");
-
-const searchButton = document.getElementById("search-button");
-const clearSearchButton = document.getElementById("clear-search-button");
-
+// Para controle do formulário admin
 let editandoProdutoId = null;
 
-// ========== MOSTRAR FORM ==========
-showAddFormBtn.addEventListener("click", () => {
-  formAddProduct.reset();
-  editandoProdutoId = null;
-  productFormTitle.textContent = "Adicionar Novo Produto";
-  formAddProduct.classList.add("show");
-});
+// Persistência do carrinho no localStorage
+function salvarCarrinho() {
+    localStorage.setItem('carrinho', JSON.stringify(carrinho));
+}
 
-cancelFormBtn.addEventListener("click", () => {
-  formAddProduct.classList.remove("show");
-  formAddProduct.reset();
-  editandoProdutoId = null;
-});
+function carregarCarrinho() {
+    const dados = localStorage.getItem('carrinho');
+    if (dados) {
+        carrinho = JSON.parse(dados);
+    }
+}
 
-// ========== ENVIAR FORMULÁRIO ==========
-formAddProduct.addEventListener("submit", async (e) => {
-  e.preventDefault();
+// Função para buscar produtos com paginação e filtros
+async function fetchProdutos(queryParams = '') {
+    const url = `${API_BASE_URL}/api/products${queryParams}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
+        const data = await response.json();
 
-  if (!token) {
-    alert("Você precisa estar logado para realizar essa ação.");
-    return;
-  }
+        // Define página atual com base na query
+        currentPage = parseInt((new URLSearchParams(queryParams)).get('page')) || 1;
 
-  const produto = {
-    nome: document.getElementById("name").value,
-    descricao: document.getElementById("description").value,
-    preco: parseFloat(document.getElementById("price").value),
-    imagem: document.getElementById("imageUrl").value,
-    estoque: parseInt(document.getElementById("stock").value),
-    categoria: document.getElementById("category").value,
-  };
+        // Calcula total de páginas com base no totalCount retornado pelo backend
+        const totalCount = data.totalCount || (data.products ? data.products.length : 0);
+        totalPages = Math.ceil(totalCount / limit);
 
-  try {
-    const url = editandoProdutoId ? `${apiUrl}/${editandoProdutoId}` : apiUrl;
-    const method = editandoProdutoId ? "PUT" : "POST";
+        renderProdutos(data.products || []);
+        renderPaginacao();
+    } catch (error) {
+        console.error('Erro ao buscar produtos:', error);
+        const container = document.getElementById('products-container');
+        container.innerHTML = '<p class="error-message">Erro ao carregar produtos. Tente novamente mais tarde.</p>';
+        document.getElementById('pagination').innerHTML = '';
+    }
+}
 
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(produto),
+// Renderiza os produtos na página (com botão Editar)
+function renderProdutos(produtos) {
+    const container = document.getElementById('products-container');
+    container.innerHTML = '';
+    if (produtos.length === 0) {
+        container.innerHTML = '<p>Nenhum produto encontrado.</p>';
+        return;
+    }
+    produtos.forEach(produto => {
+        const item = document.createElement('div');
+        item.className = 'product-card';
+
+        // Escape para texto no onclick
+        const safeName = escapeHtml(produto.name);
+
+        // Usando JSON.stringify para passar objeto ao botão editar (escapando aspas simples)
+        const produtoJson = JSON.stringify(produto).replace(/'/g, "\\'");
+
+        item.innerHTML = `
+            <img src="${produto.imageUrl || 'https://via.placeholder.com/280x200?text=Sem+Imagem'}" alt="${produto.name}">
+            <h3>${produto.name}</h3>
+            <p>${produto.description || 'Sem descrição disponível.'}</p>
+            <p><strong>R$ ${produto.price.toFixed(2)}</strong></p>
+            <p>Estoque: ${produto.stock ?? 0}</p>
+            <button onclick="adicionarAoCarrinho('${produto._id}', '${safeName}', ${produto.price}, '${produto.imageUrl || ''}')">Adicionar ao Carrinho</button>
+            <button class="button button-secondary" style="margin-top: 5px;" onclick='iniciarEdicaoProduto(${produtoJson})'>Editar</button>
+        `;
+        container.appendChild(item);
     });
+}
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || "Erro ao salvar produto.");
+// Escape simples para prevenir problemas em onclick inline
+function escapeHtml(text) {
+    return text.replace(/'/g, "\\'");
+}
+
+// Renderiza os botões da paginação
+function renderPaginacao() {
+    const paginacaoContainer = document.getElementById('pagination');
+    paginacaoContainer.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    const btnPrev = document.createElement('button');
+    btnPrev.className = 'pagination-button';
+    btnPrev.textContent = 'Anterior';
+    btnPrev.disabled = currentPage === 1;
+    btnPrev.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            buscarComFiltros(currentPage);
+        }
+    };
+    paginacaoContainer.appendChild(btnPrev);
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'pagination-button';
+        btn.textContent = i;
+        if (i === currentPage) {
+            btn.classList.add('active');
+            btn.disabled = true;
+        }
+        btn.onclick = () => {
+            currentPage = i;
+            buscarComFiltros(currentPage);
+        };
+        paginacaoContainer.appendChild(btn);
     }
 
-    alert(editandoProdutoId ? "Produto atualizado com sucesso!" : "Produto cadastrado com sucesso!");
-    formAddProduct.classList.remove("show");
-    formAddProduct.reset();
+    const btnNext = document.createElement('button');
+    btnNext.className = 'pagination-button';
+    btnNext.textContent = 'Próximo';
+    btnNext.disabled = currentPage === totalPages;
+    btnNext.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            buscarComFiltros(currentPage);
+        }
+    };
+    paginacaoContainer.appendChild(btnNext);
+}
+
+// Monta a query de filtros + paginação e chama fetchProdutos
+function buscarComFiltros(page = 1) {
+    const categoria = document.getElementById('category-filter').value;
+    const nome = document.getElementById('search-input').value.trim();
+    const precoMin = document.getElementById('min-price-input').value;
+    const precoMax = document.getElementById('max-price-input').value;
+    const estoqueMin = document.getElementById('min-stock-input').value;
+
+    let query = `?page=${page}&limit=${limit}&`;
+    if (categoria !== 'all') query += `category=${encodeURIComponent(categoria)}&`;
+    if (nome) query += `search=${encodeURIComponent(nome)}&`;
+    if (precoMin) query += `minPrice=${encodeURIComponent(precoMin)}&`;
+    if (precoMax) query += `maxPrice=${encodeURIComponent(precoMax)}&`;
+    if (estoqueMin) query += `minStock=${encodeURIComponent(estoqueMin)}&`;
+
+    fetchProdutos(query);
+}
+
+// Adiciona produto ao carrinho
+function adicionarAoCarrinho(id, nome, preco, imagem) {
+    const produtoExistente = carrinho.find(item => item.id === id);
+    if (produtoExistente) {
+        produtoExistente.quantidade += 1;
+    } else {
+        carrinho.push({ id, nome, preco, imagem, quantidade: 1 });
+    }
+    salvarCarrinho();
+    atualizarCarrinho();
+    mostrarCarrinho();
+}
+
+// Atualiza o carrinho na tela
+function atualizarCarrinho() {
+    const container = document.getElementById('cart-items-container');
+    const countSpan = document.getElementById('cart-item-count');
+    const totalSpan = document.getElementById('cart-total');
+
+    container.innerHTML = '';
+
+    if (carrinho.length === 0) {
+        container.innerHTML = '<p id="empty-cart-message">Seu carrinho está vazio.</p>';
+        countSpan.textContent = '0';
+        totalSpan.textContent = 'R$ 0,00';
+        return;
+    }
+
+    let total = 0;
+    let totalItens = 0;
+
+    carrinho.forEach(item => {
+        total += item.preco * item.quantidade;
+        totalItens += item.quantidade;
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+            <img src="${item.imagem || 'https://via.placeholder.com/50x50?text=Sem+Imagem'}" alt="${item.nome}" width="50" />
+            <span>${item.nome}</span>
+            <span>Qtd: ${item.quantidade}</span>
+            <span>R$ ${(item.preco * item.quantidade).toFixed(2)}</span>
+            <button onclick="removerDoCarrinho('${item.id}')">Remover</button>
+        `;
+        container.appendChild(div);
+    });
+
+    countSpan.textContent = totalItens;
+    totalSpan.textContent = `R$ ${total.toFixed(2)}`;
+}
+
+// Remove item do carrinho
+function removerDoCarrinho(id) {
+    carrinho = carrinho.filter(item => item.id !== id);
+    salvarCarrinho();
+    atualizarCarrinho();
+    if (carrinho.length === 0) esconderCarrinho();
+}
+
+// Mostra o carrinho
+function mostrarCarrinho() {
+    document.getElementById('shopping-cart-section').classList.remove('hidden');
+}
+
+// Esconde o carrinho
+function esconderCarrinho() {
+    document.getElementById('shopping-cart-section').classList.add('hidden');
+}
+
+// Eventos dos botões Limpar e Finalizar
+document.getElementById('clear-cart-button').addEventListener('click', () => {
+    carrinho = [];
+    salvarCarrinho();
+    atualizarCarrinho();
+    esconderCarrinho();
+});
+
+document.getElementById('checkout-button').addEventListener('click', () => {
+    if (carrinho.length === 0) {
+        alert('Seu carrinho está vazio!');
+        return;
+    }
+    alert('Compra finalizada com sucesso! (funcionalidade simulada)');
+    carrinho = [];
+    salvarCarrinho();
+    atualizarCarrinho();
+    esconderCarrinho();
+});
+
+// Busca e filtro
+document.getElementById('search-button').addEventListener('click', () => {
+    currentPage = 1;
+    buscarComFiltros(currentPage);
+});
+
+document.getElementById('clear-search-button').addEventListener('click', () => {
+    document.getElementById('search-input').value = '';
+    document.getElementById('min-price-input').value = '';
+    document.getElementById('max-price-input').value = '';
+    document.getElementById('min-stock-input').value = '';
+    document.getElementById('category-filter').value = 'all';
+    currentPage = 1;
+    buscarComFiltros(currentPage);
+});
+
+// --- FORMULÁRIO ADMIN ---
+// Elementos do formulário admin
+const btnShowAddForm = document.getElementById('show-add-form');
+const formAddProduct = document.getElementById('add-product-form');
+const btnCancelForm = document.getElementById('cancel-form');
+const titleForm = document.getElementById('productFormTitle');
+
+// Mostrar formulário para adicionar produto
+btnShowAddForm.addEventListener('click', () => {
+    resetarFormulario();
     editandoProdutoId = null;
-    buscarComFiltros();
-  } catch (error) {
-    alert("Erro ao salvar produto.");
-    console.error(error);
-  }
+    titleForm.textContent = 'Adicionar Produto';
+    formAddProduct.style.display = 'flex';
+    window.scrollTo({ top: formAddProduct.offsetTop, behavior: 'smooth' });
 });
 
-// ========== BUSCAR PRODUTOS ==========
-async function buscarComFiltros() {
-  if (!token) {
-    containerProdutos.innerHTML = "<p>Você precisa estar logado para ver os produtos.</p>";
-    return;
-  }
+// Cancelar formulário
+btnCancelForm.addEventListener('click', () => {
+    resetarFormulario();
+    formAddProduct.style.display = 'none';
+    editandoProdutoId = null;
+});
 
-  try {
-    const res = await fetch(apiUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+// Submissão do formulário para criar/editar produto
+formAddProduct.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || "Erro ao carregar produtos.");
+    const produto = {
+        name: document.getElementById('name').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        price: parseFloat(document.getElementById('price').value),
+        imageUrl: document.getElementById('imageUrl').value.trim(),
+        stock: parseInt(document.getElementById('stock').value) || 0,
+        category: document.getElementById('category').value,
+    };
+
+    if (!produto.name || !produto.category) {
+        alert('Por favor, preencha os campos obrigatórios: Nome e Categoria.');
+        return;
     }
-
-    const produtos = await res.json();
-    exibirProdutos(produtos);
-  } catch (err) {
-    containerProdutos.innerHTML = "<p>Erro ao carregar produtos.</p>";
-    console.error(err);
-  }
-}
-
-// ========== EXIBIR PRODUTOS ==========
-function exibirProdutos(produtos) {
-  containerProdutos.innerHTML = "";
-
-  if (produtos.length === 0) {
-    containerProdutos.innerHTML = "<p>Nenhum produto encontrado.</p>";
-    return;
-  }
-
-  produtos.forEach((produto) => {
-    const card = document.createElement("div");
-    card.classList.add("product-card");
-
-    card.innerHTML = `
-      <img src="${produto.imagem}" alt="${produto.nome}">
-      <h3>${produto.nome}</h3>
-      <p>${produto.descricao}</p>
-      <p><strong>Preço:</strong> R$ ${produto.preco.toFixed(2)}</p>
-      <p><strong>Estoque:</strong> ${produto.estoque}</p>
-      <p><strong>Categoria:</strong> ${produto.categoria}</p>
-      <button class="button button-edit" data-id="${produto._id}">Editar</button>
-    `;
-
-    containerProdutos.appendChild(card);
-  });
-}
-
-// ========== EDITAR PRODUTO ==========
-containerProdutos.addEventListener("click", async (e) => {
-  if (e.target.classList.contains("button-edit")) {
-    const id = e.target.dataset.id;
 
     try {
-      const res = await fetch(`${apiUrl}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+        let response;
+        if (editandoProdutoId) {
+            response = await fetch(`${API_BASE_URL}/api/products/${editandoProdutoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(produto),
+            });
+        } else {
+            response = await fetch(`${API_BASE_URL}/api/products`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(produto),
+            });
+        }
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Erro ao buscar produto.");
-      }
+        if (!response.ok) {
+            const erro = await response.json().catch(() => ({}));
+            throw new Error(erro.message || 'Erro na requisição.');
+        }
 
-      const produto = await res.json();
-      document.getElementById("name").value = produto.nome;
-      document.getElementById("description").value = produto.descricao;
-      document.getElementById("price").value = produto.preco;
-      document.getElementById("imageUrl").value = produto.imagem;
-      document.getElementById("stock").value = produto.estoque;
-      document.getElementById("category").value = produto.categoria;
-
-      productFormTitle.textContent = "Editar Produto";
-      formAddProduct.classList.add("show");
-      editandoProdutoId = produto._id;
+        alert(editandoProdutoId ? 'Produto atualizado com sucesso!' : 'Produto adicionado com sucesso!');
+        resetarFormulario();
+        formAddProduct.style.display = 'none';
+        editandoProdutoId = null;
+        buscarComFiltros(currentPage);
     } catch (err) {
-      alert("Erro ao buscar produto.");
-      console.error(err);
+        alert(`Erro: ${err.message}`);
+        console.error(err);
     }
-  }
 });
 
-// ========== BUSCA E FILTROS ==========
-searchButton.addEventListener("click", async () => {
-  const termo = searchInput.value.toLowerCase();
-  const categoria = categoryFilter.value;
-  const precoMin = parseFloat(minPriceInput.value) || 0;
-  const precoMax = parseFloat(maxPriceInput.value) || Infinity;
-  const estoqueMin = parseInt(minStockInput.value) || 0;
+// Resetar formulário admin
+function resetarFormulario() {
+    formAddProduct.reset();
+    document.getElementById('product-id').value = '';
+}
 
-  try {
-    const res = await fetch(apiUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+// Preencher formulário para edição
+function iniciarEdicaoProduto(produto) {
+    editandoProdutoId = produto._id;
 
-    const data = await res.json();
+    titleForm.textContent = 'Editar Produto';
+    document.getElementById('name').value = produto.name || '';
+    document.getElementById('description').value = produto.description || '';
+    document.getElementById('price').value = produto.price || 0;
+    document.getElementById('imageUrl').value = produto.imageUrl || '';
+    document.getElementById('stock').value = produto.stock || 0;
+    document.getElementById('category').value = produto.category || '';
 
-    const filtrado = data.filter((p) => {
-      return (
-        (categoria === "all" || p.categoria === categoria) &&
-        p.nome.toLowerCase().includes(termo) &&
-        p.preco >= precoMin &&
-        p.preco <= precoMax &&
-        p.estoque >= estoqueMin
-      );
-    });
+    formAddProduct.style.display = 'flex';
+    window.scrollTo({ top: formAddProduct.offsetTop, behavior: 'smooth' });
+}
 
-    exibirProdutos(filtrado);
-  } catch (err) {
-    alert("Erro na busca.");
-    console.error(err);
-  }
-});
-
-clearSearchButton.addEventListener("click", () => {
-  categoryFilter.value = "all";
-  searchInput.value = "";
-  minPriceInput.value = "";
-  maxPriceInput.value = "";
-  minStockInput.value = "";
-  buscarComFiltros();
-});
-
-// ========== INICIALIZA ==========
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("current-year").textContent = new Date().getFullYear();
-  buscarComFiltros();
-});
