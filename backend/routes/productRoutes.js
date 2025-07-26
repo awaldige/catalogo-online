@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const authMiddleware = require('../middleware/authMiddleware'); //  Importa middleware
 
-// Listar produtos (GET /api/products)
+// Listar produtos (público)
 router.get('/', async (req, res) => {
   try {
     const produtos = await Product.find();
@@ -12,8 +13,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Criar produto (POST /api/products)
-router.post('/', async (req, res) => {
+// Criar produto (proteção adicionada)
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const novoProduto = new Product(req.body);
     await novoProduto.save();
@@ -23,8 +24,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Atualizar produto (PUT /api/products/:id)
-router.put('/:id', async (req, res) => {
+// Atualizar produto (protegido)
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const produtoAtualizado = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!produtoAtualizado) return res.status(404).json({ message: 'Produto não encontrado' });
@@ -34,8 +35,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Excluir produto (DELETE /api/products/:id)
-router.delete('/:id', async (req, res) => {
+// Excluir produto (protegido)
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const produtoRemovido = await Product.findByIdAndDelete(req.params.id);
     if (!produtoRemovido) return res.status(404).json({ message: 'Produto não encontrado' });
