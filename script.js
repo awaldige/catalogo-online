@@ -1,5 +1,7 @@
-const apiUrl = "https://catalogo-backend-e14g.onrender.com/produtos";
-const token = localStorage.getItem("token"); // Token JWT salvo após login
+const apiUrl = "https://catalogo-backend-e14g.onrender.com/api/products"; // Ajuste aqui se necessário
+
+// Pega o token salvo no localStorage
+const token = localStorage.getItem("token");
 
 // ================== Elementos ====================
 const addForm = document.getElementById("add-product-form");
@@ -25,20 +27,19 @@ showAddBtn.addEventListener("click", () => {
 });
 
 cancelBtn.addEventListener("click", () => {
-  console.log("Cancelado");
   addForm.classList.remove("show");
   resetForm();
 });
 
 // ================== Preencher formulário para edição ====================
 function fillForm(product) {
-  document.getElementById("product-id").value = product._id;
-  document.getElementById("name").value = product.nome;
-  document.getElementById("description").value = product.descricao;
-  document.getElementById("price").value = product.preco;
-  document.getElementById("imageUrl").value = product.imagem;
-  document.getElementById("stock").value = product.estoque || 0;
-  document.getElementById("category").value = product.categoria;
+  document.getElementById("product-id").value = product._id || product.id;
+  document.getElementById("name").value = product.nome || product.name;
+  document.getElementById("description").value = product.descricao || product.description;
+  document.getElementById("price").value = product.preco || product.price;
+  document.getElementById("imageUrl").value = product.imagem || product.imageUrl;
+  document.getElementById("stock").value = product.estoque || product.stock || 0;
+  document.getElementById("category").value = product.categoria || product.category;
 
   productFormTitle.textContent = "Editar Produto";
   addForm.classList.add("show");
@@ -58,32 +59,58 @@ addForm.addEventListener("submit", async (e) => {
     categoria: document.getElementById("category").value,
   };
 
+  if (!token) {
+    alert("Você precisa estar logado para realizar essa ação.");
+    return;
+  }
+
   try {
-    const options = {
-      method: id ? "PUT" : "POST",
+    const url = id ? `${apiUrl}/${id}` : apiUrl;
+    const method = id ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method,
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Bearer ${token}`,
       },
-      body: JSON.stringify(product)
-    };
+      body: JSON.stringify(product),
+    });
 
-    const url = id ? `${apiUrl}/${id}` : apiUrl;
-    await fetch(url, options);
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Erro ao salvar o produto.");
+    }
 
+    alert(id ? "Produto atualizado com sucesso!" : "Produto cadastrado com sucesso!");
     loadProducts();
     resetForm();
     addForm.classList.remove("show");
   } catch (error) {
-    alert("Erro ao salvar o produto.");
+    alert(error.message);
     console.error(error);
   }
 });
 
 // ================== Buscar e exibir produtos ====================
 async function loadProducts() {
+  if (!token) {
+    productsContainer.innerHTML = "<p>Você precisa estar logado para ver os produtos.</p>";
+    return;
+  }
+
   try {
-    const res = await fetch(apiUrl);
+    const res = await fetch(apiUrl, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Erro ao carregar produtos.");
+    }
+
     const data = await res.json();
     displayProducts(data);
   } catch (err) {
@@ -106,13 +133,13 @@ function displayProducts(products) {
     card.classList.add("product-card");
 
     card.innerHTML = `
-      <img src="${product.imagem}" alt="${product.nome}">
-      <h3>${product.nome}</h3>
-      <p>${product.descricao}</p>
-      <p><strong>Preço:</strong> R$ ${product.preco.toFixed(2)}</p>
-      <p><strong>Estoque:</strong> ${product.estoque || 0}</p>
-      <p><strong>Categoria:</strong> ${product.categoria}</p>
-      <button class="button button-edit" data-id="${product._id}">Editar</button>
+      <img src="${product.imagem || product.imageUrl}" alt="${product.nome || product.name}">
+      <h3>${product.nome || product.name}</h3>
+      <p>${product.descricao || product.description}</p>
+      <p><strong>Preço:</strong> R$ ${(product.preco || product.price).toFixed(2)}</p>
+      <p><strong>Estoque:</strong> ${product.estoque || product.stock || 0}</p>
+      <p><strong>Categoria:</strong> ${product.categoria || product.category}</p>
+      <button class="button button-edit" data-id="${product._id || product.id}">Editar</button>
     `;
 
     productsContainer.appendChild(card);
@@ -133,23 +160,38 @@ searchButton.addEventListener("click", async () => {
   const maxPrice = parseFloat(maxPriceInput.value) || Infinity;
   const minStock = parseInt(minStockInput.value) || 0;
 
+  if (!token) {
+    alert("Você precisa estar logado para buscar produtos.");
+    return;
+  }
+
   try {
-    const res = await fetch(apiUrl);
+    const res = await fetch(apiUrl, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Erro ao carregar produtos.");
+    }
+
     const data = await res.json();
 
     const filtered = data.filter(p => {
-      const matchesCategory = category === "all" || p.categoria === category;
-      const matchesName = p.nome.toLowerCase().includes(searchTerm);
-      const matchesPrice = p.preco >= minPrice && p.preco <= maxPrice;
-      const matchesStock = p.estoque >= minStock;
+      const matchesCategory = category === "all" || (p.categoria || p.category) === category;
+      const matchesName = (p.nome || p.name).toLowerCase().includes(searchTerm);
+      const matchesPrice = (p.preco || p.price) >= minPrice && (p.preco || p.price) <= maxPrice;
+      const matchesStock = (p.estoque || p.stock) >= minStock;
 
       return matchesCategory && matchesName && matchesPrice && matchesStock;
     });
 
     displayProducts(filtered);
   } catch (err) {
+    alert(err.message);
     console.error(err);
-    alert("Erro ao filtrar produtos.");
   }
 });
 
@@ -167,17 +209,28 @@ productsContainer.addEventListener("click", async (e) => {
   if (e.target.classList.contains("button-edit")) {
     const id = e.target.dataset.id;
 
+    if (!token) {
+      alert("Você precisa estar logado para editar produtos.");
+      return;
+    }
+
     try {
       const res = await fetch(`${apiUrl}/${id}`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
       });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Erro ao buscar dados do produto.");
+      }
+
       const product = await res.json();
       fillForm(product);
     } catch (err) {
+      alert(err.message);
       console.error(err);
-      alert("Erro ao buscar dados do produto.");
     }
   }
 });
