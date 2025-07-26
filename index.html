@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Meu Catálogo Online - André Waldige</title>
-    <meta name="description" content="Catálogo online profissional criado por André Waldige - Desenvolvedor Web Freelancer.">
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <meta name="description" content="Catálogo online profissional criado por André Waldige - Desenvolvedor Web Freelancer." />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
 </head>
 <body>
     <header>
@@ -24,7 +30,7 @@
             <h2>Encontrar Produtos</h2>
             <div class="search-bar">
                 <label for="category-filter" class="visually-hidden">Filtrar por categoria</label>
-                <select id="category-filter">
+                <select id="category-filter" aria-label="Filtrar por categoria">
                     <option value="all">Todas as Categorias</option>
                     <option value="Feminino">Feminino</option>
                     <option value="Masculino">Masculino</option>
@@ -36,11 +42,10 @@
                     <option value="Moda Praia">Moda Praia</option>
                     <option value="Moda Íntima">Moda Íntima</option>
                 </select>
-                <input type="text" id="search-input" placeholder="Digite o nome ou descrição do produto...">
-                
-                <input type="number" id="min-price-input" placeholder="Preço Mín." min="0" step="0.01">
-                <input type="number" id="max-price-input" placeholder="Preço Máx." min="0" step="0.01">
-                <input type="number" id="min-stock-input" placeholder="Estoque Mín." min="0">
+                <input type="text" id="search-input" placeholder="Digite o nome ou descrição do produto..." aria-label="Buscar produtos por nome ou descrição" />
+                <input type="number" id="min-price-input" placeholder="Preço Mín." min="0" step="0.01" aria-label="Preço mínimo" />
+                <input type="number" id="max-price-input" placeholder="Preço Máx." min="0" step="0.01" aria-label="Preço máximo" />
+                <input type="number" id="min-stock-input" placeholder="Estoque Mín." min="0" aria-label="Estoque mínimo" />
                 <button id="search-button" class="button button-primary">Buscar</button>
                 <button id="clear-search-button" class="button button-secondary">Limpar Busca</button>
             </div>
@@ -48,13 +53,12 @@
         
         <section id="product-list">
             <h2>Nossos Produtos em Destaque</h2>
-            <div class="products-container" id="products-container">
-                </div>
+            <div class="products-container" id="products-container"></div>
         </section>
 
-        ---
+        <hr />
 
-        <section id="shopping-cart-section" class="hidden">
+        <section id="shopping-cart-section" class="hidden" aria-live="polite">
             <h2>Seu Carrinho de Compras (<span id="cart-item-count">0</span> itens)</h2>
             <div class="cart-items-container" id="cart-items-container">
                 <p id="empty-cart-message">Seu carrinho está vazio.</p>
@@ -65,35 +69,37 @@
                 <button id="checkout-button" class="button button-success">Finalizar Compra</button>
             </div>
         </section>
-        ---
+
+        <hr />
 
         <section id="pagination-section">
-          <div class="pagination-controls" id="pagination"></div>
-
+            <div class="pagination-controls" id="pagination"></div>
         </section>
+
+        <hr />
 
         <section id="add-product-section">
             <h2>Gerenciar Produtos (Admin)</h2>
             <button id="show-add-form" class="button button-primary">Adicionar Novo Produto</button>
 
-            <form id="add-product-form">
+            <form id="add-product-form" style="display:none;" aria-label="Formulário para adicionar ou editar produto">
                 <h3 id="productFormTitle">Adicionar/Editar Produto</h3>
-                <input type="hidden" id="product-id"> 
+                <input type="hidden" id="product-id" />
                 
                 <label for="name">Nome do Produto:</label>
-                <input type="text" id="name" required>
+                <input type="text" id="name" required />
 
                 <label for="description">Descrição:</label>
                 <textarea id="description"></textarea>
 
                 <label for="price">Preço:</label>
-                <input type="number" id="price" step="0.01" required>
+                <input type="number" id="price" step="0.01" required />
 
                 <label for="imageUrl">URL da Imagem:</label>
-                <input type="text" id="imageUrl">
+                <input type="text" id="imageUrl" />
 
                 <label for="stock">Estoque (opcional):</label>
-                <input type="number" id="stock" value="0">
+                <input type="number" id="stock" value="0" min="0" />
 
                 <label for="category">Categoria:</label>
                 <select id="category" required>
@@ -108,6 +114,7 @@
                     <option value="Moda Praia">Moda Praia</option>
                     <option value="Moda Íntima">Moda Íntima</option>
                 </select>
+
                 <button type="submit" class="button button-success">Salvar Produto</button>
                 <button type="button" id="cancel-form" class="button button-secondary">Cancelar</button>
             </form>
