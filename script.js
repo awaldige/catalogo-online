@@ -5,6 +5,9 @@ let currentPage = 1;
 let totalPages = 1;
 const limit = 9; // Itens por página
 
+// Para controle do formulário admin
+let editandoProdutoId = null;
+
 // Persistência do carrinho no localStorage
 function salvarCarrinho() {
     localStorage.setItem('carrinho', JSON.stringify(carrinho));
@@ -42,7 +45,7 @@ async function fetchProdutos(queryParams = '') {
     }
 }
 
-// Renderiza os produtos na página
+// Renderiza os produtos na página (com botão Editar)
 function renderProdutos(produtos) {
     const container = document.getElementById('products-container');
     container.innerHTML = '';
@@ -53,13 +56,21 @@ function renderProdutos(produtos) {
     produtos.forEach(produto => {
         const item = document.createElement('div');
         item.className = 'product-card';
+
+        // Escape para texto no onclick
+        const safeName = escapeHtml(produto.name);
+
+        // Usando JSON.stringify para passar objeto ao botão editar (escapando aspas simples)
+        const produtoJson = JSON.stringify(produto).replace(/'/g, "\\'");
+
         item.innerHTML = `
             <img src="${produto.imageUrl || 'https://via.placeholder.com/280x200?text=Sem+Imagem'}" alt="${produto.name}">
             <h3>${produto.name}</h3>
             <p>${produto.description || 'Sem descrição disponível.'}</p>
             <p><strong>R$ ${produto.price.toFixed(2)}</strong></p>
             <p>Estoque: ${produto.stock ?? 0}</p>
-            <button onclick="adicionarAoCarrinho('${produto._id}', '${escapeHtml(produto.name)}', ${produto.price}, '${produto.imageUrl}')">Adicionar ao Carrinho</button>
+            <button onclick="adicionarAoCarrinho('${produto._id}', '${safeName}', ${produto.price}, '${produto.imageUrl || ''}')">Adicionar ao Carrinho</button>
+            <button class="button button-secondary" style="margin-top: 5px;" onclick='iniciarEdicaoProduto(${produtoJson})'>Editar</button>
         `;
         container.appendChild(item);
     });
@@ -240,6 +251,101 @@ document.getElementById('clear-search-button').addEventListener('click', () => {
     buscarComFiltros(currentPage);
 });
 
+// --- FORMULÁRIO ADMIN ---
+// Elementos do formulário admin
+const btnShowAddForm = document.getElementById('show-add-form');
+const formAddProduct = document.getElementById('add-product-form');
+const btnCancelForm = document.getElementById('cancel-form');
+const titleForm = document.getElementById('productFormTitle');
+
+// Mostrar formulário para adicionar produto
+btnShowAddForm.addEventListener('click', () => {
+    resetarFormulario();
+    editandoProdutoId = null;
+    titleForm.textContent = 'Adicionar Produto';
+    formAddProduct.style.display = 'flex';
+    window.scrollTo({ top: formAddProduct.offsetTop, behavior: 'smooth' });
+});
+
+// Cancelar formulário
+btnCancelForm.addEventListener('click', () => {
+    resetarFormulario();
+    formAddProduct.style.display = 'none';
+    editandoProdutoId = null;
+});
+
+// Submissão do formulário para criar/editar produto
+formAddProduct.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const produto = {
+        name: document.getElementById('name').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        price: parseFloat(document.getElementById('price').value),
+        imageUrl: document.getElementById('imageUrl').value.trim(),
+        stock: parseInt(document.getElementById('stock').value) || 0,
+        category: document.getElementById('category').value,
+    };
+
+    if (!produto.name || !produto.category) {
+        alert('Por favor, preencha os campos obrigatórios: Nome e Categoria.');
+        return;
+    }
+
+    try {
+        let response;
+        if (editandoProdutoId) {
+            response = await fetch(`${API_BASE_URL}/api/products/${editandoProdutoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(produto),
+            });
+        } else {
+            response = await fetch(`${API_BASE_URL}/api/products`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(produto),
+            });
+        }
+
+        if (!response.ok) {
+            const erro = await response.json().catch(() => ({}));
+            throw new Error(erro.message || 'Erro na requisição.');
+        }
+
+        alert(editandoProdutoId ? 'Produto atualizado com sucesso!' : 'Produto adicionado com sucesso!');
+        resetarFormulario();
+        formAddProduct.style.display = 'none';
+        editandoProdutoId = null;
+        buscarComFiltros(currentPage);
+    } catch (err) {
+        alert(`Erro: ${err.message}`);
+        console.error(err);
+    }
+});
+
+// Resetar formulário admin
+function resetarFormulario() {
+    formAddProduct.reset();
+    document.getElementById('product-id').value = '';
+}
+
+// Preencher formulário para edição
+function iniciarEdicaoProduto(produto) {
+    editandoProdutoId = produto._id;
+
+    titleForm.textContent = 'Editar Produto';
+    document.getElementById('name').value = produto.name || '';
+    document.getElementById('description').value = produto.description || '';
+    document.getElementById('price').value = produto.price || 0;
+    document.getElementById('imageUrl').value = produto.imageUrl || '';
+    document.getElementById('stock').value = produto.stock || 0;
+    document.getElementById('category').value = produto.category || '';
+
+    formAddProduct.style.display = 'flex';
+    window.scrollTo({ top: formAddProduct.offsetTop, behavior: 'smooth' });
+}
+
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('current-year').textContent = new Date().getFullYear();
@@ -247,4 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (carrinho.length === 0) esconderCarrinho();
     else mostrarCarrinho();
     buscarComFiltros(currentPage);
+    
+    // Esconder formulário admin no carregamento
+    formAddProduct.style.display = 'none';
 });
