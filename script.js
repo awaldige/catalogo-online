@@ -1,4 +1,5 @@
 const apiUrl = "https://catalogo-backend-e14g.onrender.com/produtos";
+const token = localStorage.getItem("token"); // Token JWT salvo após login
 
 // ================== Elementos ====================
 const addForm = document.getElementById("add-product-form");
@@ -24,13 +25,14 @@ showAddBtn.addEventListener("click", () => {
 });
 
 cancelBtn.addEventListener("click", () => {
+  console.log("Cancelado");
   addForm.classList.remove("show");
   resetForm();
 });
 
 // ================== Preencher formulário para edição ====================
 function fillForm(product) {
-  document.getElementById("product-id").value = product.id;
+  document.getElementById("product-id").value = product._id;
   document.getElementById("name").value = product.nome;
   document.getElementById("description").value = product.descricao;
   document.getElementById("price").value = product.preco;
@@ -57,19 +59,17 @@ addForm.addEventListener("submit", async (e) => {
   };
 
   try {
-    if (id) {
-      await fetch(`${apiUrl}/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(product),
-      });
-    } else {
-      await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(product),
-      });
-    }
+    const options = {
+      method: id ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(product)
+    };
+
+    const url = id ? `${apiUrl}/${id}` : apiUrl;
+    await fetch(url, options);
 
     loadProducts();
     resetForm();
@@ -112,7 +112,7 @@ function displayProducts(products) {
       <p><strong>Preço:</strong> R$ ${product.preco.toFixed(2)}</p>
       <p><strong>Estoque:</strong> ${product.estoque || 0}</p>
       <p><strong>Categoria:</strong> ${product.categoria}</p>
-      <button class="button button-edit" data-id="${product.id}">Editar</button>
+      <button class="button button-edit" data-id="${product._id}">Editar</button>
     `;
 
     productsContainer.appendChild(card);
@@ -168,7 +168,11 @@ productsContainer.addEventListener("click", async (e) => {
     const id = e.target.dataset.id;
 
     try {
-      const res = await fetch(`${apiUrl}/${id}`);
+      const res = await fetch(`${apiUrl}/${id}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
       const product = await res.json();
       fillForm(product);
     } catch (err) {
