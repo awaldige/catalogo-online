@@ -1,465 +1,183 @@
-const API_BASE_URL = 'https://catalogo-backend-e14g.onrender.com';
+const apiUrl = "https://catalogo-backend-e14g.onrender.com/produtos";
 
-let carrinho = [];
-let currentPage = 1;
-let totalPages = 1;
-const limit = 9; // Itens por página
+// ================== Elementos ====================
+const addForm = document.getElementById("add-product-form");
+const showAddBtn = document.getElementById("show-add-form");
+const cancelBtn = document.getElementById("cancel-form");
+const productsContainer = document.getElementById("products-container");
+const productFormTitle = document.getElementById("productFormTitle");
 
-// Para controle do formulário admin
-let editandoProdutoId = null;
+const categoryFilter = document.getElementById("category-filter");
+const searchInput = document.getElementById("search-input");
+const minPriceInput = document.getElementById("min-price-input");
+const maxPriceInput = document.getElementById("max-price-input");
+const minStockInput = document.getElementById("min-stock-input");
 
-// Persistência do carrinho no localStorage
-function salvarCarrinho() {
-    localStorage.setItem('carrinho', JSON.stringify(carrinho));
-}
+const searchButton = document.getElementById("search-button");
+const clearSearchButton = document.getElementById("clear-search-button");
 
-function carregarCarrinho() {
-    const dados = localStorage.getItem('carrinho');
-    if (dados) {
-        carrinho = JSON.parse(dados);
-    }
-}
-
-// Função para buscar produtos com paginação e filtros
-async function fetchProdutos(queryParams = '') {
-    const url = `${API_BASE_URL}/api/products${queryParams}`;
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
-        const data = await response.json();
-
-        // Define página atual com base na query
-        currentPage = parseInt((new URLSearchParams(queryParams)).get('page')) || 1;
-
-        // Calcula total de páginas com base no totalCount retornado pelo backend
-        const totalCount = data.totalCount || (data.products ? data.products.length : 0);
-        totalPages = Math.ceil(totalCount / limit);
-
-        renderProdutos(data.products || []);
-        renderPaginacao();
-    } catch (error) {
-        console.error('Erro ao buscar produtos:', error);
-        const container = document.getElementById('products-container');
-        container.innerHTML = '<p class="error-message">Erro ao carregar produtos. Tente novamente mais tarde.</p>';
-        document.getElementById('pagination').innerHTML = '';
-    }
-}
-
-// Renderiza os produtos na página (com botão Editar)
-function renderProdutos(produtos) {
-    const container = document.getElementById('products-container');
-    container.innerHTML = '';
-    if (produtos.length === 0) {
-        container.innerHTML = '<p>Nenhum produto encontrado.</p>';
-        return;
-    }
-    produtos.forEach(produto => {
-        const item = document.createElement('div');
-        item.className = 'product-card';
-
-        // Escape para texto no onclick
-        const safeName = escapeHtml(produto.name);
-
-        // Usando JSON.stringify para passar objeto ao botão editar (escapando aspas simples)
-        const produtoJson = JSON.stringify(produto).replace(/'/g, "\\'");
-
-        item.innerHTML = `
-            <img src="${produto.imageUrl || 'https://via.placeholder.com/280x200?text=Sem+Imagem'}" alt="${produto.name}">
-            <h3>${produto.name}</h3>
-            <p>${produto.description || 'Sem descrição disponível.'}</p>
-            <p><strong>R$ ${produto.price.toFixed(2)}</strong></p>
-            <p>Estoque: ${produto.stock ?? 0}</p>
-            <button onclick="adicionarAoCarrinho('${produto._id}', '${safeName}', ${produto.price}, '${produto.imageUrl || ''}')">Adicionar ao Carrinho</button>
-            <button class="button button-secondary" style="margin-top: 5px;" onclick='iniciarEdicaoProduto(${produtoJson})'>Editar</button>
-        `;
-        container.appendChild(item);
-    });
-}
-
-// Escape simples para prevenir problemas em onclick inline
-function escapeHtml(text) {
-    return text.replace(/'/g, "\\'");
-}
-
-// Renderiza os botões da paginação
-function renderPaginacao() {
-    const paginacaoContainer = document.getElementById('pagination');
-    paginacaoContainer.innerHTML = '';
-
-    if (totalPages <= 1) return;
-
-    const btnPrev = document.createElement('button');
-    btnPrev.className = 'pagination-button';
-    btnPrev.textContent = 'Anterior';
-    btnPrev.disabled = currentPage === 1;
-    btnPrev.onclick = () => {
-        if (currentPage > 1) {
-            currentPage--;
-            buscarComFiltros(currentPage);
-        }
-    };
-    paginacaoContainer.appendChild(btnPrev);
-
-    for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement('button');
-        btn.className = 'pagination-button';
-        btn.textContent = i;
-        if (i === currentPage) {
-            btn.classList.add('active');
-            btn.disabled = true;
-        }
-        btn.onclick = () => {
-            currentPage = i;
-            buscarComFiltros(currentPage);
-        };
-        paginacaoContainer.appendChild(btn);
-    }
-
-    const btnNext = document.createElement('button');
-    btnNext.className = 'pagination-button';
-    btnNext.textContent = 'Próximo';
-    btnNext.disabled = currentPage === totalPages;
-    btnNext.onclick = () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            buscarComFiltros(currentPage);
-        }
-    };
-    paginacaoContainer.appendChild(btnNext);
-}
-
-// Monta a query de filtros + paginação e chama fetchProdutos
-function buscarComFiltros(page = 1) {
-    const categoria = document.getElementById('category-filter').value;
-    const nome = document.getElementById('search-input').value.trim();
-    const precoMin = document.getElementById('min-price-input').value;
-    const precoMax = document.getElementById('max-price-input').value;
-    const estoqueMin = document.getElementById('min-stock-input').value;
-
-    let query = `?page=${page}&limit=${limit}&`;
-    if (categoria !== 'all') query += `category=${encodeURIComponent(categoria)}&`;
-    if (nome) query += `search=${encodeURIComponent(nome)}&`;
-    if (precoMin) query += `minPrice=${encodeURIComponent(precoMin)}&`;
-    if (precoMax) query += `maxPrice=${encodeURIComponent(precoMax)}&`;
-    if (estoqueMin) query += `minStock=${encodeURIComponent(estoqueMin)}&`;
-
-    fetchProdutos(query);
-}
-
-// Adiciona produto ao carrinho
-function adicionarAoCarrinho(id, nome, preco, imagem) {
-    const produtoExistente = carrinho.find(item => item.id === id);
-    if (produtoExistente) {
-        produtoExistente.quantidade += 1;
-    } else {
-        carrinho.push({ id, nome, preco, imagem, quantidade: 1 });
-    }
-    salvarCarrinho();
-    atualizarCarrinho();
-    mostrarCarrinho();
-}
-
-// Atualiza o carrinho na tela
-function atualizarCarrinho() {
-    const container = document.getElementById('cart-items-container');
-    const countSpan = document.getElementById('cart-item-count');
-    const totalSpan = document.getElementById('cart-total');
-
-    container.innerHTML = '';
-
-    if (carrinho.length === 0) {
-        container.innerHTML = '<p id="empty-cart-message">Seu carrinho está vazio.</p>';
-        countSpan.textContent = '0';
-        totalSpan.textContent = 'R$ 0,00';
-        return;
-    }
-
-    let total = 0;
-    let totalItens = 0;
-
-    carrinho.forEach(item => {
-        total += item.preco * item.quantidade;
-        totalItens += item.quantidade;
-
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-        div.innerHTML = `
-            <img src="${item.imagem || 'https://via.placeholder.com/50x50?text=Sem+Imagem'}" alt="${item.nome}" width="50" />
-            <span>${item.nome}</span>
-            <span>Qtd: ${item.quantidade}</span>
-            <span>R$ ${(item.preco * item.quantidade).toFixed(2)}</span>
-            <button onclick="removerDoCarrinho('${item.id}')">Remover</button>
-        `;
-        container.appendChild(div);
-    });
-
-    countSpan.textContent = totalItens;
-    totalSpan.textContent = `R$ ${total.toFixed(2)}`;
-}
-
-// Remove item do carrinho
-function removerDoCarrinho(id) {
-    carrinho = carrinho.filter(item => item.id !== id);
-    salvarCarrinho();
-    atualizarCarrinho();
-    if (carrinho.length === 0) esconderCarrinho();
-}
-
-// Mostra o carrinho
-function mostrarCarrinho() {
-    document.getElementById('shopping-cart-section').classList.remove('hidden');
-}
-
-// Esconde o carrinho
-function esconderCarrinho() {
-    document.getElementById('shopping-cart-section').classList.add('hidden');
-}
-
-// Eventos dos botões Limpar e Finalizar
-document.getElementById('clear-cart-button').addEventListener('click', () => {
-    carrinho = [];
-    salvarCarrinho();
-    atualizarCarrinho();
-    esconderCarrinho();
+// ================== Mostrar / Esconder Form ====================
+showAddBtn.addEventListener("click", () => {
+  resetForm();
+  productFormTitle.textContent = "Adicionar Novo Produto";
+  addForm.classList.add("show");
 });
 
-document.getElementById('checkout-button').addEventListener('click', () => {
-    if (carrinho.length === 0) {
-        alert('Seu carrinho está vazio!');
-        return;
-    }
-    alert('Compra finalizada com sucesso! (funcionalidade simulada)');
-    carrinho = [];
-    salvarCarrinho();
-    atualizarCarrinho();
-    esconderCarrinho();
+cancelBtn.addEventListener("click", () => {
+  addForm.classList.remove("show");
+  resetForm();
 });
 
-// Busca e filtro
-document.getElementById('search-button').addEventListener('click', () => {
-    currentPage = 1;
-    buscarComFiltros(currentPage);
-});
+// ================== Preencher formulário para edição ====================
+function fillForm(product) {
+  document.getElementById("product-id").value = product.id;
+  document.getElementById("name").value = product.nome;
+  document.getElementById("description").value = product.descricao;
+  document.getElementById("price").value = product.preco;
+  document.getElementById("imageUrl").value = product.imagem;
+  document.getElementById("stock").value = product.estoque || 0;
+  document.getElementById("category").value = product.categoria;
 
-document.getElementById('clear-search-button').addEventListener('click', () => {
-    document.getElementById('search-input').value = '';
-    document.getElementById('min-price-input').value = '';
-    document.getElementById('max-price-input').value = '';
-    document.getElementById('min-stock-input').value = '';
-    document.getElementById('category-filter').value = 'all';
-    currentPage = 1;
-    buscarComFiltros(currentPage);
-});
-
-// --- FORMULÁRIO ADMIN ---
-// Elementos do formulário admin
-const btnShowAddForm = document.getElementById('show-add-form');
-const formAddProduct = document.getElementById('add-product-form');
-const btnCancelForm = document.getElementById('cancel-form');
-const titleForm = document.getElementById('productFormTitle');
-
-// Mostrar formulário para adicionar produto
-btnShowAddForm.addEventListener('click', () => {
-    resetarFormulario();
-    editandoProdutoId = null;
-    titleForm.textContent = 'Adicionar Produto';
-    formAddProduct.style.display = 'flex';
-    window.scrollTo({ top: formAddProduct.offsetTop, behavior: 'smooth' });
-});
-
-// Cancelar formulário
-btnCancelForm.addEventListener('click', () => {
-    resetarFormulario();
-    formAddProduct.style.display = 'none';
-    editandoProdutoId = null;
-});
-
-// Submissão do formulário para criar/editar produto
-formAddProduct.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const produto = {
-        name: document.getElementById('name').value.trim(),
-        description: document.getElementById('description').value.trim(),
-        price: parseFloat(document.getElementById('price').value),
-        imageUrl: document.getElementById('imageUrl').value.trim(),
-        stock: parseInt(document.getElementById('stock').value) || 0,
-        category: document.getElementById('category').value,
-    };
-
-    if (!produto.name || !produto.category) {
-        alert('Por favor, preencha os campos obrigatórios: Nome e Categoria.');
-        return;
-    }
-
-    try {
-        let response;
-        if (editandoProdutoId) {
-            response = await fetch(`${API_BASE_URL}/api/products/${editandoProdutoId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(produto),
-            });
-        } else {
-            response = await fetch(`${API_BASE_URL}/api/products`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(produto),
-            });
-        }
-
-        if (!response.ok) {
-            const erro = await response.json().catch(() => ({}));
-            throw new Error(erro.message || 'Erro na requisição.');
-        }
-
-        alert(editandoProdutoId ? 'Produto atualizado com sucesso!' : 'Produto adicionado com sucesso!');
-        resetarFormulario();
-        formAddProduct.style.display = 'none';
-        editandoProdutoId = null;
-        buscarComFiltros(currentPage);
-    } catch (err) {
-        alert(`Erro: ${err.message}`);
-        console.error(err);
-    }
-});
-
-// Resetar formulário admin
-function resetarFormulario() {
-    formAddProduct.reset();
-    document.getElementById('product-id').value = '';
+  productFormTitle.textContent = "Editar Produto";
+  addForm.classList.add("show");
 }
 
-// Preencher formulário para edição
-function iniciarEdicaoProduto(produto) {
-    editandoProdutoId = produto._id;
-
-    titleForm.textContent = 'Editar Produto';
-    document.getElementById('name').value = produto.name || '';
-    document.getElementById('description').value = produto.description || '';
-    document.getElementById('price').value = produto.price || 0;
-    document.getElementById('imageUrl').value = produto.imageUrl || '';
-    document.getElementById('stock').value = produto.stock || 0;
-    document.getElementById('category').value = produto.category || '';
-
-    formAddProduct.style.display = 'flex';
-    window.scrollTo({ top: formAddProduct.offsetTop, behavior: 'smooth' });
-}
-
-// Inicialização
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('current-year').textContent = new Date().getFullYear();
-    carregarCarrinho();
-    if (carrinho.length === 0) esconderCarrinho();
-    else mostrarCarrinho();
-    buscarComFiltros(currentPage);
-    
-    // Esconder formulário admin no carregamento
-    formAddProduct.style.display = 'none';
-});
-// Elementos do DOM
-const showAddFormBtn = document.getElementById("show-add-form");
-const cancelFormBtn = document.getElementById("cancel-form");
-const form = document.getElementById("add-product-form");
-const formTitle = document.getElementById("productFormTitle");
-const productIdField = document.getElementById("product-id");
-
-// Campos do formulário
-const nameField = document.getElementById("name");
-const descriptionField = document.getElementById("description");
-const priceField = document.getElementById("price");
-const imageUrlField = document.getElementById("imageUrl");
-const stockField = document.getElementById("stock");
-const categoryField = document.getElementById("category");
-
-// Mostrar formulário vazio para adicionar produto
-showAddFormBtn.addEventListener("click", () => {
-  clearForm();
-  formTitle.textContent = "Adicionar Novo Produto";
-  form.style.display = "block";
-});
-
-// Ocultar formulário ao cancelar
-cancelFormBtn.addEventListener("click", () => {
-  form.style.display = "none";
-});
-
-// Submeter formulário (criar ou editar)
-form.addEventListener("submit", async (e) => {
+// ================== Enviar produto (adicionar ou editar) ====================
+addForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const id = productIdField.value.trim();
-  const method = id ? "PUT" : "POST";
-  const url = id
-    ? `https://catalogo-backend-e14g.onrender.com/produtos/${id}`
-    : `https://catalogo-backend-e14g.onrender.com/produtos`;
-
-  const produto = {
-    nome: nameField.value,
-    descricao: descriptionField.value,
-    preco: parseFloat(priceField.value),
-    imagem: imageUrlField.value,
-    estoque: parseInt(stockField.value) || 0,
-    categoria: categoryField.value
+  const id = document.getElementById("product-id").value;
+  const product = {
+    nome: document.getElementById("name").value,
+    descricao: document.getElementById("description").value,
+    preco: parseFloat(document.getElementById("price").value),
+    imagem: document.getElementById("imageUrl").value,
+    estoque: parseInt(document.getElementById("stock").value),
+    categoria: document.getElementById("category").value,
   };
 
   try {
-    const resposta = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(produto)
+    if (id) {
+      await fetch(`${apiUrl}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product),
+      });
+    } else {
+      await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product),
+      });
+    }
+
+    loadProducts();
+    resetForm();
+    addForm.classList.remove("show");
+  } catch (error) {
+    alert("Erro ao salvar o produto.");
+    console.error(error);
+  }
+});
+
+// ================== Buscar e exibir produtos ====================
+async function loadProducts() {
+  try {
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    displayProducts(data);
+  } catch (err) {
+    productsContainer.innerHTML = "<p>Erro ao carregar produtos.</p>";
+    console.error(err);
+  }
+}
+
+// ================== Exibir os produtos na tela ====================
+function displayProducts(products) {
+  productsContainer.innerHTML = "";
+
+  if (products.length === 0) {
+    productsContainer.innerHTML = "<p>Nenhum produto encontrado.</p>";
+    return;
+  }
+
+  products.forEach((product) => {
+    const card = document.createElement("div");
+    card.classList.add("product-card");
+
+    card.innerHTML = `
+      <img src="${product.imagem}" alt="${product.nome}">
+      <h3>${product.nome}</h3>
+      <p>${product.descricao}</p>
+      <p><strong>Preço:</strong> R$ ${product.preco.toFixed(2)}</p>
+      <p><strong>Estoque:</strong> ${product.estoque || 0}</p>
+      <p><strong>Categoria:</strong> ${product.categoria}</p>
+      <button class="button button-edit" data-id="${product.id}">Editar</button>
+    `;
+
+    productsContainer.appendChild(card);
+  });
+}
+
+// ================== Resetar formulário ====================
+function resetForm() {
+  addForm.reset();
+  document.getElementById("product-id").value = "";
+}
+
+// ================== Filtro de busca ====================
+searchButton.addEventListener("click", async () => {
+  const searchTerm = searchInput.value.toLowerCase();
+  const category = categoryFilter.value;
+  const minPrice = parseFloat(minPriceInput.value) || 0;
+  const maxPrice = parseFloat(maxPriceInput.value) || Infinity;
+  const minStock = parseInt(minStockInput.value) || 0;
+
+  try {
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+
+    const filtered = data.filter(p => {
+      const matchesCategory = category === "all" || p.categoria === category;
+      const matchesName = p.nome.toLowerCase().includes(searchTerm);
+      const matchesPrice = p.preco >= minPrice && p.preco <= maxPrice;
+      const matchesStock = p.estoque >= minStock;
+
+      return matchesCategory && matchesName && matchesPrice && matchesStock;
     });
 
-    if (!resposta.ok) throw new Error("Erro ao salvar o produto.");
-
-    alert(id ? "Produto atualizado com sucesso!" : "Produto cadastrado com sucesso!");
-    form.reset();
-    form.style.display = "none";
-    productIdField.value = "";
-
-    // Atualizar listagem dos produtos (você pode chamar a função existente para isso)
-    carregarProdutos(); // <-- substitua pela sua função de recarregar a lista
-  } catch (error) {
-    alert("Erro ao salvar produto: " + error.message);
+    displayProducts(filtered);
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao filtrar produtos.");
   }
 });
 
-// Função para preencher o formulário com dados de um produto
-function preencherFormulario(produto) {
-  productIdField.value = produto.id;
-  nameField.value = produto.nome;
-  descriptionField.value = produto.descricao || "";
-  priceField.value = produto.preco;
-  imageUrlField.value = produto.imagem;
-  stockField.value = produto.estoque || 0;
-  categoryField.value = produto.categoria;
+clearSearchButton.addEventListener("click", () => {
+  categoryFilter.value = "all";
+  searchInput.value = "";
+  minPriceInput.value = "";
+  maxPriceInput.value = "";
+  minStockInput.value = "";
+  loadProducts();
+});
 
-  formTitle.textContent = "Editar Produto";
-  form.style.display = "block";
-}
-
-// Função para limpar o formulário
-function clearForm() {
-  productIdField.value = "";
-  nameField.value = "";
-  descriptionField.value = "";
-  priceField.value = "";
-  imageUrlField.value = "";
-  stockField.value = 0;
-  categoryField.value = "";
-}
-
-// Delegação para botão "Editar"
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("editar-produto")) {
+// ================== Delegação de evento para botão editar ====================
+productsContainer.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("button-edit")) {
     const id = e.target.dataset.id;
 
-    fetch(`https://catalogo-backend-e14g.onrender.com/produtos/${id}`)
-      .then(res => res.json())
-      .then(produto => preencherFormulario(produto))
-      .catch(err => alert("Erro ao carregar produto para edição."));
+    try {
+      const res = await fetch(`${apiUrl}/${id}`);
+      const product = await res.json();
+      fillForm(product);
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao buscar dados do produto.");
+    }
   }
 });
 
+// ================== Inicialização ====================
+document.getElementById("current-year").textContent = new Date().getFullYear();
+loadProducts();
