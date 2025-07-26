@@ -5,24 +5,40 @@ let currentPage = 1;
 let totalPages = 1;
 const limit = 9; // Itens por página
 
+// Persistência do carrinho no localStorage
+function salvarCarrinho() {
+    localStorage.setItem('carrinho', JSON.stringify(carrinho));
+}
+
+function carregarCarrinho() {
+    const dados = localStorage.getItem('carrinho');
+    if (dados) {
+        carrinho = JSON.parse(dados);
+    }
+}
+
 // Função para buscar produtos com paginação e filtros
 async function fetchProdutos(queryParams = '') {
     const url = `${API_BASE_URL}/api/products${queryParams}`;
     try {
         const response = await fetch(url);
+        if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
         const data = await response.json();
 
         // Define página atual com base na query
         currentPage = parseInt((new URLSearchParams(queryParams)).get('page')) || 1;
 
         // Calcula total de páginas com base no totalCount retornado pelo backend
-        const totalCount = data.totalCount || data.products.length;
+        const totalCount = data.totalCount || (data.products ? data.products.length : 0);
         totalPages = Math.ceil(totalCount / limit);
 
         renderProdutos(data.products || []);
         renderPaginacao();
     } catch (error) {
         console.error('Erro ao buscar produtos:', error);
+        const container = document.getElementById('products-container');
+        container.innerHTML = '<p class="error-message">Erro ao carregar produtos. Tente novamente mais tarde.</p>';
+        document.getElementById('pagination').innerHTML = '';
     }
 }
 
@@ -38,15 +54,20 @@ function renderProdutos(produtos) {
         const item = document.createElement('div');
         item.className = 'product-card';
         item.innerHTML = `
-            <img src="${produto.imageUrl}" alt="${produto.name}">
+            <img src="${produto.imageUrl || 'https://via.placeholder.com/280x200?text=Sem+Imagem'}" alt="${produto.name}">
             <h3>${produto.name}</h3>
-            <p>${produto.description}</p>
+            <p>${produto.description || 'Sem descrição disponível.'}</p>
             <p><strong>R$ ${produto.price.toFixed(2)}</strong></p>
             <p>Estoque: ${produto.stock ?? 0}</p>
-            <button onclick="adicionarAoCarrinho('${produto._id}', '${produto.name}', ${produto.price}, '${produto.imageUrl}')">Adicionar ao Carrinho</button>
+            <button onclick="adicionarAoCarrinho('${produto._id}', '${escapeHtml(produto.name)}', ${produto.price}, '${produto.imageUrl}')">Adicionar ao Carrinho</button>
         `;
         container.appendChild(item);
     });
+}
+
+// Escape simples para prevenir problemas em onclick inline
+function escapeHtml(text) {
+    return text.replace(/'/g, "\\'");
 }
 
 // Renderiza os botões da paginação
@@ -105,11 +126,11 @@ function buscarComFiltros(page = 1) {
     const estoqueMin = document.getElementById('min-stock-input').value;
 
     let query = `?page=${page}&limit=${limit}&`;
-    if (categoria !== 'all') query += `category=${categoria}&`;
+    if (categoria !== 'all') query += `category=${encodeURIComponent(categoria)}&`;
     if (nome) query += `search=${encodeURIComponent(nome)}&`;
-    if (precoMin) query += `minPrice=${precoMin}&`;
-    if (precoMax) query += `maxPrice=${precoMax}&`;
-    if (estoqueMin) query += `minStock=${estoqueMin}&`;
+    if (precoMin) query += `minPrice=${encodeURIComponent(precoMin)}&`;
+    if (precoMax) query += `maxPrice=${encodeURIComponent(precoMax)}&`;
+    if (estoqueMin) query += `minStock=${encodeURIComponent(estoqueMin)}&`;
 
     fetchProdutos(query);
 }
@@ -122,6 +143,7 @@ function adicionarAoCarrinho(id, nome, preco, imagem) {
     } else {
         carrinho.push({ id, nome, preco, imagem, quantidade: 1 });
     }
+    salvarCarrinho();
     atualizarCarrinho();
     mostrarCarrinho();
 }
@@ -151,7 +173,7 @@ function atualizarCarrinho() {
         const div = document.createElement('div');
         div.className = 'cart-item';
         div.innerHTML = `
-            <img src="${item.imagem}" alt="${item.nome}" width="50" />
+            <img src="${item.imagem || 'https://via.placeholder.com/50x50?text=Sem+Imagem'}" alt="${item.nome}" width="50" />
             <span>${item.nome}</span>
             <span>Qtd: ${item.quantidade}</span>
             <span>R$ ${(item.preco * item.quantidade).toFixed(2)}</span>
@@ -167,6 +189,7 @@ function atualizarCarrinho() {
 // Remove item do carrinho
 function removerDoCarrinho(id) {
     carrinho = carrinho.filter(item => item.id !== id);
+    salvarCarrinho();
     atualizarCarrinho();
     if (carrinho.length === 0) esconderCarrinho();
 }
@@ -184,6 +207,7 @@ function esconderCarrinho() {
 // Eventos dos botões Limpar e Finalizar
 document.getElementById('clear-cart-button').addEventListener('click', () => {
     carrinho = [];
+    salvarCarrinho();
     atualizarCarrinho();
     esconderCarrinho();
 });
@@ -195,6 +219,7 @@ document.getElementById('checkout-button').addEventListener('click', () => {
     }
     alert('Compra finalizada com sucesso! (funcionalidade simulada)');
     carrinho = [];
+    salvarCarrinho();
     atualizarCarrinho();
     esconderCarrinho();
 });
@@ -218,6 +243,8 @@ document.getElementById('clear-search-button').addEventListener('click', () => {
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('current-year').textContent = new Date().getFullYear();
-    esconderCarrinho();
+    carregarCarrinho();
+    if (carrinho.length === 0) esconderCarrinho();
+    else mostrarCarrinho();
     buscarComFiltros(currentPage);
 });
