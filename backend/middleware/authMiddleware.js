@@ -2,19 +2,26 @@ const jwt = require('jsonwebtoken');
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ message: 'Token não fornecido' });
+
+  // Verifica se o header existe e está no formato correto
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Token não fornecido' });
+  }
 
   const token = authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ message: 'Token inválido' });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Pode usar req.user para autorizações futuras
-    next();
+
+    // Você pode checar permissões aqui se quiser, ex:
+    // if (!decoded.isAdmin) return res.status(403).json({ message: 'Acesso negado' });
+
+    req.user = decoded; // salva os dados decodificados do token
+    next(); // segue para a próxima rota/middleware
   } catch (err) {
-    res.status(401).json({ message: 'Token inválido ou expirado' });
+    console.error('Erro ao verificar token:', err.message);
+    return res.status(401).json({ message: 'Token inválido ou expirado' });
   }
 }
 
 module.exports = authMiddleware;
-
