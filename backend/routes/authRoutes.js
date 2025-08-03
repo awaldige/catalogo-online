@@ -1,6 +1,5 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-
 const router = express.Router();
 
 router.post('/login', (req, res) => {
@@ -11,8 +10,9 @@ router.post('/login', (req, res) => {
 
   if (email === adminEmail && password === adminPassword) {
     const token = jwt.sign({ email }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN || '1d',
+      expiresIn: process.env.JWT_EXPIRES_IN || '1d'
     });
+
     return res.json({ token });
   }
 
@@ -20,3 +20,5 @@ router.post('/login', (req, res) => {
 });
 
 module.exports = router;
+
+
