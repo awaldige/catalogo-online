@@ -1,29 +1,22 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 
 const router = express.Router();
 
-// Usuário admin hardcoded (pode salvar no banco ou em arquivo)
-const adminUser = {
-  username: 'admin',
-  // senha: '785143' hashed:
-  passwordHash: '$2a$10$4j1KzNKl1dPVeXe1RMWjEOKX1xBtJe61vYOQHhP0jXqZZjBjF7OZa' // hash bcrypt da senha '785143'
-};
+router.post('/login', (req, res) => {
+  const { email, password } = req.body;
 
-router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
 
-  if (username !== adminUser.username)
-    return res.status(401).json({ message: 'Usuário inválido' });
+  if (email === adminEmail && password === adminPassword) {
+    const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || '1d',
+    });
+    return res.json({ token });
+  }
 
-  const validPass = await bcrypt.compare(password, adminUser.passwordHash);
-  if (!validPass)
-    return res.status(401).json({ message: 'Senha incorreta' });
-
-  const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d' });
-  res.json({ token });
+  return res.status(401).json({ message: 'Credenciais inválidas' });
 });
 
 module.exports = router;
-
