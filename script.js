@@ -1,171 +1,444 @@
-const apiUrl = 'https://catalogo-backend-e14g.onrender.com';
-let token = localStorage.getItem('authToken') || null;
 
-// DOM Elements
-const loginBtn = document.getElementById('btnLogin');
-const logoutBtn = document.getElementById('btnLogout');
-const loginMsg = document.getElementById('login-message');
-const usernameInput = document.getElementById('login-username');
-const passwordInput = document.getElementById('login-password');
-const addProductSection = document.getElementById('add-product-section');
-const productsContainer = document.getElementById('products-container');
-const currentYear = document.getElementById('current-year');
-const cartItemsContainer = document.getElementById('cart-items-container');
-const cartTotal = document.getElementById('cart-total');
-const cartItemCount = document.getElementById('cart-item-count');
-const shoppingCartSection = document.getElementById('shopping-cart-section');
+const API_BASE_URL = 'https://catalogo-backend-e14g.onrender.com';
 
-// Utilidades
-const formatCurrency = (value) =>
-  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+let carrinho = [];
+let currentPage = 1;
+let totalPages = 1;
+const limit = 9;
 
-// Verifica login e atualiza UI
-function updateAuthUI() {
-  const isLoggedIn = !!token;
-  addProductSection.style.display = isLoggedIn ? 'block' : 'none';
-  logoutBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
-  loginBtn.style.display = isLoggedIn ? 'none' : 'inline-block';
-  usernameInput.style.display = isLoggedIn ? 'none' : 'inline-block';
-  passwordInput.style.display = isLoggedIn ? 'none' : 'inline-block';
-  loginMsg.textContent = '';
+let editandoProdutoId = null;
+
+function salvarCarrinho() {
+localStorage.setItem('carrinho', JSON.stringify(carrinho));
 }
 
-// LOGIN
-loginBtn.addEventListener('click', async () => {
-  const username = usernameInput.value;
-  const password = passwordInput.value;
+function carregarCarrinho() {
+const dados = localStorage.getItem('carrinho');
+if (dados) {
+carrinho = JSON.parse(dados);
+}
+}
 
-  if (!username || !password) {
-    loginMsg.textContent = 'Preencha todos os campos.';
-    return;
-  }
+async function fetchProdutos(queryParams = '') {
+const url = `${API_BASE_URL}/api/products${queryParams}`;
+try {
+const response = await fetch(url);
+if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
+const data = await response.json();
 
-  try {
-    const res = await fetch(`${apiUrl}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
+currentPage = parseInt((new URLSearchParams(queryParams)).get('page')) || 1;
 
-    const data = await res.json();
+const totalCount = data.totalCount || (data.products ? data.products.length : 0);
+totalPages = Math.ceil(totalCount / limit);
 
-    if (!res.ok) throw new Error(data.message || 'Erro no login');
+renderProdutos(data.products || []);
+renderPaginacao();
+} catch (error) {
+console.error('Erro ao buscar produtos:', error);
+const container = document.getElementById('products-container');
+container.innerHTML = '<p class="error-message">Erro ao carregar produtos. Tente novamente mais tarde.</p>';
+document.getElementById('pagination').innerHTML = '';
+}
+}
 
-    token = data.token;
-    localStorage.setItem('authToken', token);
-    updateAuthUI();
-    loadProducts(); // recarrega produtos
-  } catch (err) {
-    loginMsg.textContent = err.message;
-  }
+function renderProdutos(produtos) {
+const container = document.getElementById('products-container');
+container.innerHTML = '';
+if (produtos.length === 0) {
+container.innerHTML = '<p>Nenhum produto encontrado.</p>';
+return;
+}
+
+produtos.forEach(produto => {
+const item = document.createElement('div');
+item.className = 'product-card';
+
+const safeName = escapeHtml(produto.name);
+const produtoJson = JSON.stringify(produto).replace(/'/g, "\\'");
+
+item.innerHTML = `
+<img src="${produto.imageUrl || 'https://via.placeholder.com/280x200?text=Sem+Imagem'}" alt="${produto.name}">
+<h3>${produto.name}</h3>
+<p>${produto.description || 'Sem descrição disponível.'}</p>
+<p><strong>R$ ${produto.price.toFixed(2)}</strong></p>
+<p>Estoque: ${produto.stock ?? 0}</p>
+<button onclick="adicionarAoCarrinho('${produto._id}', '${safeName}', ${produto.price}, '${produto.imageUrl || ''}')">Adicionar ao Carrinho</button>
+<button class="button button-secondary" style="margin-top: 5px;" onclick='iniciarEdicaoProduto(${produtoJson})'>Editar</button>
+`;
+container.appendChild(item);
 });
 
-// LOGOUT
-logoutBtn.addEventListener('click', () => {
-  token = null;
-  localStorage.removeItem('authToken');
-  updateAuthUI();
-  loadProducts(); // recarrega produtos
+mostrarOcultarAdmin();
+}
+
+function escapeHtml(text) {
+return text.replace(/'/g, "\\'");
+}
+
+function renderPaginacao() {
+const paginacaoContainer = document.getElementById('pagination');
+paginacaoContainer.innerHTML = '';
+
+if (totalPages <= 1) return;
+
+const btnPrev = document.createElement('button');
+btnPrev.className = 'pagination-button';
+btnPrev.textContent = 'Anterior';
+btnPrev.disabled = currentPage === 1;
+btnPrev.onclick = () => {
+if (currentPage > 1) {
+currentPage--;
+buscarComFiltros(currentPage);
+}
+};
+paginacaoContainer.appendChild(btnPrev);
+
+for (let i = 1; i <= totalPages; i++) {
+const btn = document.createElement('button');
+btn.className = 'pagination-button';
+btn.textContent = i;
+if (i === currentPage) {
+btn.classList.add('active');
+btn.disabled = true;
+}
+btn.onclick = () => {
+currentPage = i;
+buscarComFiltros(currentPage);
+};
+paginacaoContainer.appendChild(btn);
+}
+
+const btnNext = document.createElement('button');
+btnNext.className = 'pagination-button';
+btnNext.textContent = 'Próximo';
+btnNext.disabled = currentPage === totalPages;
+btnNext.onclick = () => {
+if (currentPage < totalPages) {
+currentPage++;
+buscarComFiltros(currentPage);
+}
+};
+paginacaoContainer.appendChild(btnNext);
+}
+
+function buscarComFiltros(page = 1) {
+const categoria = document.getElementById('category-filter').value;
+const nome = document.getElementById('search-input').value.trim();
+const precoMin = document.getElementById('min-price-input').value;
+const precoMax = document.getElementById('max-price-input').value;
+const estoqueMin = document.getElementById('min-stock-input').value;
+
+let query = `?page=${page}&limit=${limit}&`;
+if (categoria !== 'all') query += `category=${encodeURIComponent(categoria)}&`;
+if (nome) query += `search=${encodeURIComponent(nome)}&`;
+if (precoMin) query += `minPrice=${encodeURIComponent(precoMin)}&`;
+if (precoMax) query += `maxPrice=${encodeURIComponent(precoMax)}&`;
+if (estoqueMin) query += `minStock=${encodeURIComponent(estoqueMin)}&`;
+
+fetchProdutos(query);
+}
+
+function adicionarAoCarrinho(id, nome, preco, imagem) {
+const produtoExistente = carrinho.find(item => item.id === id);
+if (produtoExistente) {
+produtoExistente.quantidade += 1;
+} else {
+carrinho.push({ id, nome, preco, imagem, quantidade: 1 });
+}
+salvarCarrinho();
+atualizarCarrinho();
+mostrarCarrinho();
+}
+
+function atualizarCarrinho() {
+const container = document.getElementById('cart-items-container');
+const countSpan = document.getElementById('cart-item-count');
+const totalSpan = document.getElementById('cart-total');
+
+container.innerHTML = '';
+
+if (carrinho.length === 0) {
+container.innerHTML = '<p id="empty-cart-message">Seu carrinho está vazio.</p>';
+countSpan.textContent = '0';
+totalSpan.textContent = 'R$ 0,00';
+return;
+}
+
+let total = 0;
+let totalItens = 0;
+
+carrinho.forEach(item => {
+total += item.preco * item.quantidade;
+totalItens += item.quantidade;
+
+const div = document.createElement('div');
+div.className = 'cart-item';
+div.innerHTML = `
+<img src="${item.imagem || 'https://via.placeholder.com/50x50?text=Sem+Imagem'}" alt="${item.nome}" width="50" />
+<span>${item.nome}</span>
+<span>Qtd: ${item.quantidade}</span>
+<span>R$ ${(item.preco * item.quantidade).toFixed(2)}</span>
+<button onclick="removerDoCarrinho('${item.id}')">Remover</button>
+`;
+container.appendChild(div);
 });
 
-// CARREGAR PRODUTOS
-async function loadProducts() {
-  try {
-    const res = await fetch(`${apiUrl}/produtos`);
-    const produtos = await res.json();
-    renderProducts(produtos);
-  } catch (err) {
-    productsContainer.innerHTML = '<p>Erro ao carregar produtos.</p>';
-  }
+countSpan.textContent = totalItens;
+totalSpan.textContent = `R$ ${total.toFixed(2)}`;
 }
 
-// RENDERIZAR PRODUTOS
-function renderProducts(produtos) {
-  if (!produtos || produtos.length === 0) {
-    productsContainer.innerHTML = '<p>Nenhum produto encontrado.</p>';
-    return;
-  }
-
-  productsContainer.innerHTML = '';
-
-  produtos.forEach((produto) => {
-    const card = document.createElement('div');
-    card.className = 'product-card';
-    card.innerHTML = `
-      <img src="${produto.imagem || 'https://via.placeholder.com/200'}" alt="${produto.nome}">
-      <h3>${produto.nome}</h3>
-      <p>${produto.descricao}</p>
-      <p><strong>${formatCurrency(produto.preco)}</strong></p>
-      <p>Estoque: ${produto.estoque}</p>
-      <button class="button button-success btn-add-cart" data-id="${produto._id}" data-nome="${produto.nome}" data-preco="${produto.preco}">
-        Adicionar ao Carrinho
-      </button>
-    `;
-    productsContainer.appendChild(card);
-  });
+function removerDoCarrinho(id) {
+carrinho = carrinho.filter(item => item.id !== id);
+salvarCarrinho();
+atualizarCarrinho();
+if (carrinho.length === 0) esconderCarrinho();
 }
 
-// CARRINHO
-let cart = [];
-
-function updateCartUI() {
-  cartItemsContainer.innerHTML = '';
-  if (cart.length === 0) {
-    cartItemsContainer.innerHTML = '<p id="empty-cart-message">Seu carrinho está vazio.</p>';
-    shoppingCartSection.classList.add('hidden');
-    return;
-  }
-
-  shoppingCartSection.classList.remove('hidden');
-  let total = 0;
-  cart.forEach((item, i) => {
-    const div = document.createElement('div');
-    div.className = 'cart-item';
-    div.innerHTML = `
-      <p>${item.nome} - ${formatCurrency(item.preco)}</p>
-      <button class="button button-danger btn-remove-cart" data-index="${i}">Remover</button>
-    `;
-    cartItemsContainer.appendChild(div);
-    total += item.preco;
-  });
-
-  cartTotal.textContent = formatCurrency(total);
-  cartItemCount.textContent = cart.length;
+function mostrarCarrinho() {
+document.getElementById('shopping-cart-section').classList.remove('hidden');
 }
 
-// DELEGAÇÃO: Adicionar ao Carrinho
-document.addEventListener('click', (e) => {
-  if (e.target.classList.contains('btn-add-cart')) {
-    const id = e.target.dataset.id;
-    const nome = e.target.dataset.nome;
-    const preco = parseFloat(e.target.dataset.preco);
-    cart.push({ id, nome, preco });
-    updateCartUI();
-  }
+function esconderCarrinho() {
+document.getElementById('shopping-cart-section').classList.add('hidden');
+}
 
-  if (e.target.classList.contains('btn-remove-cart')) {
-    const index = e.target.dataset.index;
-    cart.splice(index, 1);
-    updateCartUI();
-  }
-});
-
-// Limpar Carrinho
 document.getElementById('clear-cart-button').addEventListener('click', () => {
-  cart = [];
-  updateCartUI();
+carrinho = [];
+salvarCarrinho();
+atualizarCarrinho();
+esconderCarrinho();
 });
 
-// Finalizar Compra
 document.getElementById('checkout-button').addEventListener('click', () => {
-  alert('Compra finalizada! Obrigado.');
-  cart = [];
-  updateCartUI();
+if (carrinho.length === 0) {
+alert('Seu carrinho está vazio!');
+return;
+}
+alert('Compra finalizada com sucesso! (funcionalidade simulada)');
+carrinho = [];
+salvarCarrinho();
+atualizarCarrinho();
+esconderCarrinho();
 });
 
-// Inicialização
+document.getElementById('search-button').addEventListener('click', () => {
+currentPage = 1;
+buscarComFiltros(currentPage);
+});
+
+document.getElementById('clear-search-button').addEventListener('click', () => {
+document.getElementById('search-input').value = '';
+document.getElementById('min-price-input').value = '';
+document.getElementById('max-price-input').value = '';
+document.getElementById('min-stock-input').value = '';
+document.getElementById('category-filter').value = 'all';
+currentPage = 1;
+buscarComFiltros(currentPage);
+});
+
+const btnShowAddForm = document.getElementById('show-add-form');
+const formAddProduct = document.getElementById('add-product-form');
+const btnCancelForm = document.getElementById('cancel-form');
+const titleForm = document.getElementById('productFormTitle');
+
+btnShowAddForm.addEventListener('click', () => {
+resetarFormulario();
+editandoProdutoId = null;
+titleForm.textContent = 'Adicionar Produto';
+formAddProduct.style.display = 'flex';
+window.scrollTo({ top: formAddProduct.offsetTop, behavior: 'smooth' });
+});
+
+btnCancelForm.addEventListener('click', () => {
+resetarFormulario();
+formAddProduct.style.display = 'none';
+editandoProdutoId = null;
+});
+
+formAddProduct.addEventListener('submit', async (e) => {
+e.preventDefault();
+
+const produto = {
+name: document.getElementById('name').value.trim(),
+description: document.getElementById('description').value.trim(),
+price: parseFloat(document.getElementById('price').value),
+imageUrl: document.getElementById('imageUrl').value.trim(),
+stock: parseInt(document.getElementById('stock').value) || 0,
+category: document.getElementById('category').value,
+};
+
+if (!produto.name || !produto.category) {
+alert('Por favor, preencha os campos obrigatórios: Nome e Categoria.');
+return;
+}
+
+const token = localStorage.getItem('token');
+if (!token) {
+alert('Você precisa estar logado para realizar essa ação.');
+return;
+}
+
+const headers = {
+'Content-Type': 'application/json',
+'Authorization': `Bearer ${token}`
+};
+
+try {
+let response;
+if (editandoProdutoId) {
+response = await fetch(`${API_BASE_URL}/api/products/${editandoProdutoId}`, {
+method: 'PUT',
+headers,
+body: JSON.stringify(produto),
+});
+} else {
+response = await fetch(`${API_BASE_URL}/api/products`, {
+method: 'POST',
+headers,
+body: JSON.stringify(produto),
+});
+}
+
+if (!response.ok) {
+const erro = await response.json().catch(() => ({}));
+throw new Error(erro.message || 'Erro na requisição.');
+}
+
+alert(editandoProdutoId ? 'Produto atualizado com sucesso!' : 'Produto adicionado com sucesso!');
+resetarFormulario();
+formAddProduct.style.display = 'none';
+editandoProdutoId = null;
+buscarComFiltros(currentPage);
+} catch (err) {
+alert(`Erro: ${err.message}`);
+console.error(err);
+}
+});
+
+function resetarFormulario() {
+formAddProduct.reset();
+document.getElementById('product-id').value = '';
+}
+
+function iniciarEdicaoProduto(produto) {
+editandoProdutoId = produto._id;
+
+titleForm.textContent = 'Editar Produto';
+document.getElementById('name').value = produto.name || '';
+document.getElementById('description').value = produto.description || '';
+document.getElementById('price').value = produto.price || 0;
+document.getElementById('imageUrl').value = produto.imageUrl || '';
+document.getElementById('stock').value = produto.stock || 0;
+document.getElementById('category').value = produto.category || '';
+
+formAddProduct.style.display = 'flex';
+window.scrollTo({ top: formAddProduct.offsetTop, behavior: 'smooth' });
+}
+
+function estaLogado() {
+return !!localStorage.getItem('token');
+}
+
+function mostrarOcultarAdmin() {
+const btnAdd = document.getElementById('show-add-form');
+const botoesEditar = document.querySelectorAll('.button-secondary');
+
+if (estaLogado()) {
+btnAdd.style.display = 'inline-block';
+botoesEditar.forEach(btn => btn.style.display = 'inline-block');
+} else {
+btnAdd.style.display = 'none';
+botoesEditar.forEach(btn => btn.style.display = 'none');
+}
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  currentYear.textContent = new Date().getFullYear();
-  updateAuthUI();
-  loadProducts();
+document.getElementById('current-year').textContent = new Date().getFullYear();
+carregarCarrinho();
+if (carrinho.length === 0) esconderCarrinho();
+else mostrarCarrinho();
+buscarComFiltros(currentPage);
+
+formAddProduct.style.display = 'none';
+
+mostrarOcultarAdmin();
+});
+
+document.getElementById('btnLogout').addEventListener('click', () => {
+localStorage.removeItem('token');
+mostrarOcultarAdmin();
+alert('Você saiu.');
+});
+const loginUsername = document.getElementById('login-username');
+const loginPassword = document.getElementById('login-password');
+const btnLogin = document.getElementById('btnLogin');
+const btnLogout = document.getElementById('btnLogout');
+const loginMessage = document.getElementById('login-message');
+
+btnLogin.addEventListener('click', async () => {
+const username = loginUsername.value.trim();
+const password = loginPassword.value.trim();
+
+if (!username || !password) {
+loginMessage.textContent = 'Preencha usuário e senha.';
+return;
+}
+
+try {
+const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ username, password }),
+});
+
+if (!res.ok) {
+const errData = await res.json().catch(() => ({}));
+loginMessage.textContent = errData.message || 'Erro no login.';
+return;
+}
+
+const data = await res.json();
+localStorage.setItem('token', data.token);
+loginMessage.textContent = '';
+loginUsername.value = '';
+loginPassword.value = '';
+
+atualizarInterfaceLogin();
+buscarComFiltros(currentPage);
+alert('Login efetuado com sucesso!');
+} catch (error) {
+console.error(error);
+loginMessage.textContent = 'Erro ao conectar ao servidor.';
+}
+});
+
+btnLogout.addEventListener('click', () => {
+localStorage.removeItem('token');
+atualizarInterfaceLogin();
+alert('Logout realizado.');
+buscarComFiltros(currentPage);
+});
+
+function atualizarInterfaceLogin() {
+const token = localStorage.getItem('token');
+const estaLogado = !!token;
+
+if (estaLogado) {
+loginUsername.style.display = 'none';
+loginPassword.style.display = 'none';
+btnLogin.style.display = 'none';
+btnLogout.style.display = 'inline-block';
+} else {
+loginUsername.style.display = 'inline-block';
+loginPassword.style.display = 'inline-block';
+btnLogin.style.display = 'inline-block';
+btnLogout.style.display = 'none';
+}
+
+mostrarOcultarAdmin(); // seu controle de visibilidade do admin
+}
+
+// Chamar ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+atualizarInterfaceLogin();
 });
