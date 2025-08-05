@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-const authRoutes = require('./routes/authRoutes');
+// const authRoutes = require('./routes/authRoutes'); // Desativado temporariamente
 const productRoutes = require('./routes/productRoutes');
 
 const app = express();
@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGODB_URI)
   });
 
 // Rotas
-app.use('/api/auth', authRoutes);
+// app.use('/api/auth', authRoutes); // Desativado temporariamente
 app.use('/api/products', productRoutes);
 
 // Rota raiz simples
@@ -32,4 +32,3 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT} 🚀`);
 });
-
