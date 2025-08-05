@@ -1,4 +1,4 @@
-const apiUrl = 'https://catalogo-backend-e14g.onrender.com/api/produtos';
+const apiUrl = 'https://catalogo-backend-e14g.onrender.com/';
 const loginUrl = 'https://catalogo-backend-e14g.onrender.com/api/auth/login';
 let token = localStorage.getItem('token') || null;
 let isAdmin = false;
@@ -217,3 +217,4 @@ document.getElementById('cancel-form').addEventListener('click', () => {
 document.getElementById('show-add-form').addEventListener('click', () => {
   document.getElementById('add-product-form').classList.toggle('hidden');
 });
+
