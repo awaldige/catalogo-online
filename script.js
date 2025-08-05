@@ -1,13 +1,11 @@
-  
-     document.addEventListener('DOMContentLoaded', () => {
-  
-  const API_BASE_URL = "https://catalogo-backend-e14g.onrender.com/api";     
+document.addEventListener('DOMContentLoaded', () => {
   const productsContainer = document.getElementById('products-container');
   const addProductSection = document.getElementById('add-product-section');
   const showAddFormButton = document.getElementById('show-add-form');
   const addProductForm = document.getElementById('add-product-form');
   const cancelFormButton = document.getElementById('cancel-form');
 
+  // Campos do formulário
   const productIdInput = document.getElementById('product-id');
   const nameInput = document.getElementById('name');
   const descriptionInput = document.getElementById('description');
@@ -15,8 +13,8 @@
   const imageUrlInput = document.getElementById('imageUrl');
   const stockInput = document.getElementById('stock');
   const categoryInput = document.getElementById('category');
-  const productFormTitle = addProductForm.querySelector('h3');
 
+  // Busca e filtros
   const searchInput = document.getElementById('search-input');
   const searchButton = document.getElementById('search-button');
   const clearSearchButton = document.getElementById('clear-search-button');
@@ -26,17 +24,22 @@
   const maxPriceInput = document.getElementById('max-price-input');
   const minStockInput = document.getElementById('min-stock-input');
 
+  // Paginação
   const paginationControls = document.getElementById('pagination');
   let currentPage = 1;
   const productsPerPage = 9;
-  const API_BASE_URL = 'http://localhost:3000/api';
 
+  // Base da API
+  const API_BASE_URL = 'https://catalogo-backend-e14g.onrender.com/api';
+
+  // Estado filtros
   let currentSearchTerm = '';
   let currentCategoryFilter = 'all';
   let currentMinPrice = '';
   let currentMaxPrice = '';
   let currentMinStock = '';
 
+  // Carrinho
   const shoppingCartSection = document.getElementById('shopping-cart-section');
   const cartItemsContainer = document.getElementById('cart-items-container');
   const emptyCartMessage = document.getElementById('empty-cart-message');
@@ -185,12 +188,12 @@
 
       const data = await response.json();
 
-      const products = Array.isArray(data) ? data : data.products;
+      const products = Array.isArray(data) ? data : (data.products || []);
       const totalPages = data.totalPages || 1;
 
       productsContainer.innerHTML = '';
 
-      if (!Array.isArray(products) || products.length === 0) {
+      if (products.length === 0) {
         if (currentSearchTerm || currentCategoryFilter !== 'all' || currentMinPrice || currentMaxPrice || currentMinStock) {
           productsContainer.innerHTML = '<p class="info-message">Nenhum produto encontrado com os filtros aplicados.</p>';
         } else {
@@ -288,10 +291,10 @@
       imageUrlInput.value = product.imageUrl;
       stockInput.value = product.stock;
       categoryInput.value = product.category || '';
-      productFormTitle.textContent = 'Editar Produto';
+      addProductForm.querySelector('h3').textContent = 'Editar Produto';
     } else {
       productIdInput.value = '';
-      productFormTitle.textContent = 'Adicionar Novo Produto';
+      addProductForm.querySelector('h3').textContent = 'Adicionar Novo Produto';
       categoryInput.value = '';
     }
   }
@@ -333,6 +336,7 @@
         alert(`Produto ${id ? 'atualizado' : 'adicionado'} com sucesso!`);
         hideForm();
 
+        // Reset filtros e página
         currentPage = 1;
         currentSearchTerm = '';
         currentCategoryFilter = 'all';
@@ -344,6 +348,7 @@
         minPriceInput.value = '';
         maxPriceInput.value = '';
         minStockInput.value = '';
+
         fetchProducts();
       } else {
         const errorData = await response.json();
@@ -387,6 +392,7 @@
         minPriceInput.value = '';
         maxPriceInput.value = '';
         minStockInput.value = '';
+
         fetchProducts();
       } else {
         const errorData = await response.json();
@@ -398,6 +404,7 @@
     }
   };
 
+  // Aplicar filtros e buscar
   function applyAllFiltersAndFetch() {
     currentPage = 1;
     currentSearchTerm = searchInput.value.trim();
@@ -430,6 +437,7 @@
   maxPriceInput.addEventListener('input', applyAllFiltersAndFetch);
   minStockInput.addEventListener('input', applyAllFiltersAndFetch);
 
+  // Delegação para botões "Adicionar ao Carrinho"
   productsContainer.addEventListener('click', (event) => {
     if (event.target.classList.contains('add-to-cart-button')) {
       const productId = event.target.dataset.productId;
@@ -437,6 +445,7 @@
     }
   });
 
+  // Delegação para botões do carrinho
   cartItemsContainer.addEventListener('click', (event) => {
     const productId = event.target.dataset.id;
     if (!productId) return;
@@ -452,23 +461,23 @@
 
   clearCartButton.addEventListener('click', () => {
     if (cart.length === 0) return;
-    if (confirm('Deseja realmente esvaziar o carrinho?')) {
+    if (confirm('Deseja realmente limpar o carrinho?')) {
       cart = [];
       saveCartToLocalStorage();
-      alert('Carrinho esvaziado.');
     }
   });
 
   checkoutButton.addEventListener('click', () => {
     if (cart.length === 0) {
-      alert('Seu carrinho está vazio.');
+      alert('O carrinho está vazio.');
       return;
     }
-    alert('Compra finalizada com sucesso! (Esta é uma simulação)');
+    alert('Checkout simulado! Obrigado pela compra.');
     cart = [];
     saveCartToLocalStorage();
   });
 
+  // Inicializar
   loadCartFromLocalStorage();
   fetchProducts();
 });
