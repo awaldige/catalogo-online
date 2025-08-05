@@ -1,5 +1,5 @@
 const apiBase = 'https://catalogo-backend-e14g.onrender.com';
-const produtosEndpoint = `${apiBase}/produtos`;
+const produtosEndpoint = `${apiBase}/api/produtos`;
 const loginForm = document.getElementById('login-form');
 const produtosContainer = document.getElementById('produtos-container');
 const logoutBtn = document.getElementById('logout-btn');
@@ -68,7 +68,7 @@ if (loginForm) {
     const password = document.getElementById('login-password').value;
 
     try {
-      const res = await fetch(`${apiBase}/auth/login`, {
+      const res = await fetch(`${apiBase}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
