@@ -26,13 +26,11 @@
   </header>
 
   <main>
-    <!-- Controle admin -->
     <section id="admin-access-section" style="margin-bottom: 20px;">
       <button id="btnShowAdminPanel" class="button button-primary">Entrar como Admin</button>
       <button id="btnHideAdminPanel" class="button button-secondary" style="display:none;">Sair do modo Admin</button>
     </section>
 
-    <!-- Busca -->
     <section id="search-section">
       <h2>Encontrar Produtos</h2>
       <div class="search-bar">
@@ -57,13 +55,12 @@
       </div>
     </section>
 
-    <!-- Produtos -->
     <section id="product-list">
       <h2>Nossos Produtos em Destaque</h2>
       <div class="products-container" id="products-container"></div>
+      <div id="pagination" class="pagination"></div>
     </section>
 
-    <!-- Carrinho -->
     <section id="shopping-cart-section" class="hidden">
       <h2>Seu Carrinho (<span id="cart-item-count">0</span> itens)</h2>
       <div class="cart-items-container" id="cart-items-container">
@@ -76,7 +73,6 @@
       </div>
     </section>
 
-    <!-- Admin -->
     <section id="add-product-section" style="display:none;">
       <h2>Gerenciar Produtos (Admin)</h2>
       <button id="show-add-form" class="button button-primary">Adicionar Produto</button>
@@ -125,3 +121,7 @@
   <footer>
     <p>&copy; <span id="current-year"></span> Catálogo Online por André Waldige.</p>
   </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
