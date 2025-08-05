@@ -1,307 +1,358 @@
-const apiBase = 'https://catalogo-backend-e14g.onrender.com/api';
-const produtosEndpoint = `${apiBase}/produtos`;
+'https://catalogo-backend-e14g.onrender.com';
 
-const authSection = document.getElementById('auth-section');
-const loginMessage = document.getElementById('login-message');
-const btnLogin = document.getElementById('btnLogin');
-const btnLogout = document.getElementById('btnLogout');
-const produtosContainer = document.getElementById('products-container');
-
-const searchInput = document.getElementById('search-input');
-const categoryFilter = document.getElementById('category-filter');
-const searchButton = document.getElementById('search-button');
-const clearSearchButton = document.getElementById('clear-search-button');
-
-const addProductSection = document.getElementById('add-product-section');
-const addProductForm = document.getElementById('add-product-form');
-const showAddFormBtn = document.getElementById('show-add-form');
-const cancelFormBtn = document.getElementById('cancel-form');
-
-let produtos = [];
+let carrinho = [];
 let currentPage = 1;
-const itemsPerPage = 6;
+let totalPages = 1;
+const limit = 9; // Itens por página
 
-function isAdmin() {
-  return !!localStorage.getItem('token');
+// Para controle do formulário admin
+let editandoProdutoId = null;
+
+// Persistência do carrinho no localStorage
+function salvarCarrinho() {
+    localStorage.setItem('carrinho', JSON.stringify(carrinho));
 }
 
-function ajustarInterface() {
-  if (isAdmin()) {
-    authSection.style.display = 'none';
-    btnLogout.style.display = 'inline-block';
-    addProductSection.style.display = 'block';
-    carregarProdutos();
-  } else {
-    authSection.style.display = 'block';
-    btnLogout.style.display = 'none';
-    addProductSection.style.display = 'none';
-    produtosContainer.innerHTML = '<p>Faça login para ver os produtos.</p>';
-  }
+function carregarCarrinho() {
+    const dados = localStorage.getItem('carrinho');
+    if (dados) {
+        carrinho = JSON.parse(dados);
+    }
 }
 
-// Função para carregar produtos do backend e armazenar localmente
-async function carregarProdutos() {
-  try {
-    const res = await fetch(produtosEndpoint);
-    if (!res.ok) throw new Error('Erro ao carregar produtos');
+// Função para buscar produtos com paginação e filtros
+async function fetchProdutos(queryParams = '') {
+    const url = ${API_BASE_URL}/api/products${queryParams};
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(Erro na requisição: ${response.status});
+        const data = await response.json();
 
-    produtos = await res.json();
-    currentPage = 1;
-    mostrarProdutosComFiltro();
-  } catch (err) {
-    produtosContainer.innerHTML = `<p style="color:red;">Erro ao carregar produtos: ${err.message}</p>`;
-  }
+        // Define página atual com base na query
+        currentPage = parseInt((new URLSearchParams(queryParams)).get('page')) || 1;
+
+        // Calcula total de páginas com base no totalCount retornado pelo backend
+        const totalCount = data.totalCount || (data.products ? data.products.length : 0);
+        totalPages = Math.ceil(totalCount / limit);
+
+        renderProdutos(data.products || []);
+        renderPaginacao();
+    } catch (error) {
+        console.error('Erro ao buscar produtos:', error);
+        const container = document.getElementById('products-container');
+        container.innerHTML = '<p class="error-message">Erro ao carregar produtos. Tente novamente mais tarde.</p>';
+        document.getElementById('pagination').innerHTML = '';
+    }
 }
 
-// Mostrar produtos com filtros e paginação
-function mostrarProdutosComFiltro() {
-  let filtroCategoria = categoryFilter.value;
-  let filtroBusca = searchInput.value.trim().toLowerCase();
+// Renderiza os produtos na página (com botão Editar)
+function renderProdutos(produtos) {
+    const container = document.getElementById('products-container');
+    container.innerHTML = '';
+    if (produtos.length === 0) {
+        container.innerHTML = '<p>Nenhum produto encontrado.</p>';
+        return;
+    }
+    produtos.forEach(produto => {
+        const item = document.createElement('div');
+        item.className = 'product-card';
 
-  let filtrados = produtos.filter(produto => {
-    const nomeDesc = (produto.nome + ' ' + produto.descricao).toLowerCase();
-    let categoriaOk = filtroCategoria === 'all' || produto.categoria === filtroCategoria;
-    let buscaOk = nomeDesc.includes(filtroBusca);
-    return categoriaOk && buscaOk;
-  });
+        // Escape para texto no onclick
+        const safeName = escapeHtml(produto.name);
 
-  // Paginação
-  const totalPages = Math.ceil(filtrados.length / itemsPerPage);
-  if (currentPage > totalPages) currentPage = totalPages || 1;
+        // Usando JSON.stringify para passar objeto ao botão editar (escapando aspas simples)
+        const produtoJson = JSON.stringify(produto).replace(/'/g, "\\'");
 
-  const inicio = (currentPage - 1) * itemsPerPage;
-  const fim = inicio + itemsPerPage;
-  const paginados = filtrados.slice(inicio, fim);
-
-  exibirProdutos(paginados);
-  montarPaginacao(totalPages);
-}
-
-function exibirProdutos(lista) {
-  produtosContainer.innerHTML = '';
-  if (lista.length === 0) {
-    produtosContainer.innerHTML = '<p>Nenhum produto encontrado.</p>';
-    return;
-  }
-  lista.forEach(produto => {
-    const div = document.createElement('div');
-    div.className = 'produto-card';
-    div.innerHTML = `
-      <img src="${produto.imagem || 'https://via.placeholder.com/150'}" alt="${produto.nome}"/>
-      <h3>${produto.nome}</h3>
-      <p>${produto.descricao}</p>
-      <p><strong>R$ ${produto.preco.toFixed(2)}</strong></p>
-      ${isAdmin() ? `
-        <button class="button editar-produto" data-id="${produto._id}">Editar</button>
-        <button class="button excluir-produto" data-id="${produto._id}">Excluir</button>
-      ` : ''}
-    `;
-    produtosContainer.appendChild(div);
-  });
-}
-
-function montarPaginacao(totalPages) {
-  const paginationDiv = document.getElementById('pagination');
-  paginationDiv.innerHTML = '';
-
-  if (totalPages <= 1) return;
-
-  for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement('button');
-    btn.textContent = i;
-    btn.className = (i === currentPage) ? 'button button-primary' : 'button button-secondary';
-    btn.addEventListener('click', () => {
-      currentPage = i;
-      mostrarProdutosComFiltro();
+        item.innerHTML = 
+            <img src="${produto.imageUrl || 'https://via.placeholder.com/280x200?text=Sem+Imagem'}" alt="${produto.name}">
+            <h3>${produto.name}</h3>
+            <p>${produto.description || 'Sem descrição disponível.'}</p>
+            <p><strong>R$ ${produto.price.toFixed(2)}</strong></p>
+            <p>Estoque: ${produto.stock ?? 0}</p>
+            <button onclick="adicionarAoCarrinho('${produto._id}', '${safeName}', ${produto.price}, '${produto.imageUrl || ''}')">Adicionar ao Carrinho</button>
+            <button class="button button-secondary" style="margin-top: 5px;" onclick='iniciarEdicaoProduto(${produtoJson})'>Editar</button>
+        ;
+        container.appendChild(item);
     });
-    paginationDiv.appendChild(btn);
-  }
 }
 
-// Eventos de busca
-searchButton.addEventListener('click', () => {
-  currentPage = 1;
-  mostrarProdutosComFiltro();
-});
+// Escape simples para prevenir problemas em onclick inline
+function escapeHtml(text) {
+    return text.replace(/'/g, "\\'");
+}
 
-clearSearchButton.addEventListener('click', () => {
-  searchInput.value = '';
-  categoryFilter.value = 'all';
-  currentPage = 1;
-  mostrarProdutosComFiltro();
-});
+// Renderiza os botões da paginação
+function renderPaginacao() {
+    const paginacaoContainer = document.getElementById('pagination');
+    paginacaoContainer.innerHTML = '';
 
-// Login
-btnLogin.addEventListener('click', async () => {
-  const username = document.getElementById('login-username').value.trim();
-  const password = document.getElementById('login-password').value;
+    if (totalPages <= 1) return;
 
-  if (!username || !password) {
-    loginMessage.textContent = 'Preencha usuário e senha.';
-    return;
-  }
+    const btnPrev = document.createElement('button');
+    btnPrev.className = 'pagination-button';
+    btnPrev.textContent = 'Anterior';
+    btnPrev.disabled = currentPage === 1;
+    btnPrev.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            buscarComFiltros(currentPage);
+        }
+    };
+    paginacaoContainer.appendChild(btnPrev);
 
-  try {
-    const res = await fetch(`${apiBase}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: username, password })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      loginMessage.textContent = data.message || 'Usuário ou senha inválidos';
-      return;
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'pagination-button';
+        btn.textContent = i;
+        if (i === currentPage) {
+            btn.classList.add('active');
+            btn.disabled = true;
+        }
+        btn.onclick = () => {
+            currentPage = i;
+            buscarComFiltros(currentPage);
+        };
+        paginacaoContainer.appendChild(btn);
     }
 
-    localStorage.setItem('token', data.token);
-    loginMessage.textContent = '';
-    ajustarInterface();
-  } catch {
-    loginMessage.textContent = 'Erro ao conectar com o servidor.';
-  }
+    const btnNext = document.createElement('button');
+    btnNext.className = 'pagination-button';
+    btnNext.textContent = 'Próximo';
+    btnNext.disabled = currentPage === totalPages;
+    btnNext.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            buscarComFiltros(currentPage);
+        }
+    };
+    paginacaoContainer.appendChild(btnNext);
+}
+
+// Monta a query de filtros + paginação e chama fetchProdutos
+function buscarComFiltros(page = 1) {
+    const categoria = document.getElementById('category-filter').value;
+    const nome = document.getElementById('search-input').value.trim();
+    const precoMin = document.getElementById('min-price-input').value;
+    const precoMax = document.getElementById('max-price-input').value;
+    const estoqueMin = document.getElementById('min-stock-input').value;
+
+    let query = ?page=${page}&limit=${limit}&;
+    if (categoria !== 'all') query += category=${encodeURIComponent(categoria)}&;
+    if (nome) query += search=${encodeURIComponent(nome)}&;
+    if (precoMin) query += minPrice=${encodeURIComponent(precoMin)}&;
+    if (precoMax) query += maxPrice=${encodeURIComponent(precoMax)}&;
+    if (estoqueMin) query += minStock=${encodeURIComponent(estoqueMin)}&;
+
+    fetchProdutos(query);
+}
+
+// Adiciona produto ao carrinho
+function adicionarAoCarrinho(id, nome, preco, imagem) {
+    const produtoExistente = carrinho.find(item => item.id === id);
+    if (produtoExistente) {
+        produtoExistente.quantidade += 1;
+    } else {
+        carrinho.push({ id, nome, preco, imagem, quantidade: 1 });
+    }
+    salvarCarrinho();
+    atualizarCarrinho();
+    mostrarCarrinho();
+}
+
+// Atualiza o carrinho na tela
+function atualizarCarrinho() {
+    const container = document.getElementById('cart-items-container');
+    const countSpan = document.getElementById('cart-item-count');
+    const totalSpan = document.getElementById('cart-total');
+
+    container.innerHTML = '';
+
+    if (carrinho.length === 0) {
+        container.innerHTML = '<p id="empty-cart-message">Seu carrinho está vazio.</p>';
+        countSpan.textContent = '0';
+        totalSpan.textContent = 'R$ 0,00';
+        return;
+    }
+
+    let total = 0;
+    let totalItens = 0;
+
+    carrinho.forEach(item => {
+        total += item.preco * item.quantidade;
+        totalItens += item.quantidade;
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = 
+            <img src="${item.imagem || 'https://via.placeholder.com/50x50?text=Sem+Imagem'}" alt="${item.nome}" width="50" />
+            <span>${item.nome}</span>
+            <span>Qtd: ${item.quantidade}</span>
+            <span>R$ ${(item.preco * item.quantidade).toFixed(2)}</span>
+            <button onclick="removerDoCarrinho('${item.id}')">Remover</button>
+        ;
+        container.appendChild(div);
+    });
+
+    countSpan.textContent = totalItens;
+    totalSpan.textContent = R$ ${total.toFixed(2)};
+}
+
+// Remove item do carrinho
+function removerDoCarrinho(id) {
+    carrinho = carrinho.filter(item => item.id !== id);
+    salvarCarrinho();
+    atualizarCarrinho();
+    if (carrinho.length === 0) esconderCarrinho();
+}
+
+// Mostra o carrinho
+function mostrarCarrinho() {
+    document.getElementById('shopping-cart-section').classList.remove('hidden');
+}
+
+// Esconde o carrinho
+function esconderCarrinho() {
+    document.getElementById('shopping-cart-section').classList.add('hidden');
+}
+
+// Eventos dos botões Limpar e Finalizar
+document.getElementById('clear-cart-button').addEventListener('click', () => {
+    carrinho = [];
+    salvarCarrinho();
+    atualizarCarrinho();
+    esconderCarrinho();
 });
 
-// Logout
-btnLogout.addEventListener('click', () => {
-  localStorage.removeItem('token');
-  ajustarInterface();
+document.getElementById('checkout-button').addEventListener('click', () => {
+    if (carrinho.length === 0) {
+        alert('Seu carrinho está vazio!');
+        return;
+    }
+    alert('Compra finalizada com sucesso! (funcionalidade simulada)');
+    carrinho = [];
+    salvarCarrinho();
+    atualizarCarrinho();
+    esconderCarrinho();
 });
 
-// Mostrar formulário adicionar produto
-showAddFormBtn.addEventListener('click', () => {
-  limparFormulario();
-  addProductForm.classList.remove('hidden');
-  showAddFormBtn.style.display = 'none';
+// Busca e filtro
+document.getElementById('search-button').addEventListener('click', () => {
+    currentPage = 1;
+    buscarComFiltros(currentPage);
+});
+
+document.getElementById('clear-search-button').addEventListener('click', () => {
+    document.getElementById('search-input').value = '';
+    document.getElementById('min-price-input').value = '';
+    document.getElementById('max-price-input').value = '';
+    document.getElementById('min-stock-input').value = '';
+    document.getElementById('category-filter').value = 'all';
+    currentPage = 1;
+    buscarComFiltros(currentPage);
+});
+
+// --- FORMULÁRIO ADMIN ---
+// Elementos do formulário admin
+const btnShowAddForm = document.getElementById('show-add-form');
+const formAddProduct = document.getElementById('add-product-form');
+const btnCancelForm = document.getElementById('cancel-form');
+const titleForm = document.getElementById('productFormTitle');
+
+// Mostrar formulário para adicionar produto
+btnShowAddForm.addEventListener('click', () => {
+    resetarFormulario();
+    editandoProdutoId = null;
+    titleForm.textContent = 'Adicionar Produto';
+    formAddProduct.style.display = 'flex';
+    window.scrollTo({ top: formAddProduct.offsetTop, behavior: 'smooth' });
 });
 
 // Cancelar formulário
-cancelFormBtn.addEventListener('click', () => {
-  addProductForm.classList.add('hidden');
-  showAddFormBtn.style.display = 'inline-block';
+btnCancelForm.addEventListener('click', () => {
+    resetarFormulario();
+    formAddProduct.style.display = 'none';
+    editandoProdutoId = null;
 });
 
-// Submeter formulário adicionar/editar produto
-addProductForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
+// Submissão do formulário para criar/editar produto
+formAddProduct.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  const id = document.getElementById('product-id').value;
-  const nome = document.getElementById('name').value.trim();
-  const descricao = document.getElementById('description').value.trim();
-  const preco = parseFloat(document.getElementById('price').value);
-  const imagem = document.getElementById('imageUrl').value.trim();
-  const estoque = parseInt(document.getElementById('stock').value);
-  const categoria = document.getElementById('category').value;
+    const produto = {
+        name: document.getElementById('name').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        price: parseFloat(document.getElementById('price').value),
+        imageUrl: document.getElementById('imageUrl').value.trim(),
+        stock: parseInt(document.getElementById('stock').value) || 0,
+        category: document.getElementById('category').value,
+    };
 
-  if (!nome || !preco || !categoria) {
-    alert('Preencha nome, preço e categoria');
-    return;
-  }
-
-  const produtoData = { nome, descricao, preco, imagem, estoque, categoria };
-
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) throw new Error('Não autenticado');
-
-    let res;
-    if (id) {
-      // Editar
-      res = await fetch(`${produtosEndpoint}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(produtoData)
-      });
-    } else {
-      // Criar
-      res = await fetch(produtosEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(produtoData)
-      });
+    if (!produto.name || !produto.category) {
+        alert('Por favor, preencha os campos obrigatórios: Nome e Categoria.');
+        return;
     }
-
-    if (!res.ok) {
-      const err = await res.json();
-      alert(err.message || 'Erro ao salvar produto');
-      return;
-    }
-
-    alert('Produto salvo com sucesso!');
-    addProductForm.classList.add('hidden');
-    showAddFormBtn.style.display = 'inline-block';
-    carregarProdutos();
-
-  } catch (err) {
-    alert('Erro: ' + err.message);
-  }
-});
-
-function limparFormulario() {
-  document.getElementById('product-id').value = '';
-  document.getElementById('name').value = '';
-  document.getElementById('description').value = '';
-  document.getElementById('price').value = '';
-  document.getElementById('imageUrl').value = '';
-  document.getElementById('stock').value = 0;
-  document.getElementById('category').value = '';
-}
-
-// Delegação de eventos para editar e excluir produtos
-document.addEventListener('click', async (e) => {
-  if (e.target.classList.contains('editar-produto')) {
-    const id = e.target.dataset.id;
-    const produto = produtos.find(p => p._id === id);
-    if (!produto) return alert('Produto não encontrado');
-
-    document.getElementById('product-id').value = produto._id;
-    document.getElementById('name').value = produto.nome;
-    document.getElementById('description').value = produto.descricao;
-    document.getElementById('price').value = produto.preco;
-    document.getElementById('imageUrl').value = produto.imagem || '';
-    document.getElementById('stock').value = produto.estoque || 0;
-    document.getElementById('category').value = produto.categoria;
-
-    addProductForm.classList.remove('hidden');
-    showAddFormBtn.style.display = 'none';
-
-  } else if (e.target.classList.contains('excluir-produto')) {
-    const id = e.target.dataset.id;
-    if (!confirm('Tem certeza que deseja excluir este produto?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Não autenticado');
+        let response;
+        if (editandoProdutoId) {
+            response = await fetch(${API_BASE_URL}/api/products/${editandoProdutoId}, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(produto),
+            });
+        } else {
+            response = await fetch(${API_BASE_URL}/api/products, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(produto),
+            });
+        }
 
-      const res = await fetch(`${produtosEndpoint}/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+        if (!response.ok) {
+            const erro = await response.json().catch(() => ({}));
+            throw new Error(erro.message || 'Erro na requisição.');
+        }
 
-      if (!res.ok) {
-        const err = await res.json();
-        alert(err.message || 'Erro ao excluir produto');
-        return;
-      }
-
-      alert('Produto excluído com sucesso!');
-      carregarProdutos();
-
+        alert(editandoProdutoId ? 'Produto atualizado com sucesso!' : 'Produto adicionado com sucesso!');
+        resetarFormulario();
+        formAddProduct.style.display = 'none';
+        editandoProdutoId = null;
+        buscarComFiltros(currentPage);
     } catch (err) {
-      alert('Erro: ' + err.message);
+        alert(Erro: ${err.message});
+        console.error(err);
     }
-  }
 });
 
-// Atualiza ano no rodapé
-document.getElementById('current-year').textContent = new Date().getFullYear();
+// Resetar formulário admin
+function resetarFormulario() {
+    formAddProduct.reset();
+    document.getElementById('product-id').value = '';
+}
 
-// Inicializa interface
-ajustarInterface();
+// Preencher formulário para edição
+function iniciarEdicaoProduto(produto) {
+    editandoProdutoId = produto._id;
+
+    titleForm.textContent = 'Editar Produto';
+    document.getElementById('name').value = produto.name || '';
+    document.getElementById('description').value = produto.description || '';
+    document.getElementById('price').value = produto.price || 0;
+    document.getElementById('imageUrl').value = produto.imageUrl || '';
+    document.getElementById('stock').value = produto.stock || 0;
+    document.getElementById('category').value = produto.category || '';
+
+    formAddProduct.style.display = 'flex';
+    window.scrollTo({ top: formAddProduct.offsetTop, behavior: 'smooth' });
+}
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+    carregarCarrinho();
+    if (carrinho.length === 0) esconderCarrinho();
+    else mostrarCarrinho();
+    buscarComFiltros(currentPage);
+    
+    // Esconder formulário admin no carregamento
+    formAddProduct.style.display = 'none';
+});
