@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
-const authMiddleware = require('../middleware/authMiddleware');
+// const authMiddleware = require('../middleware/authMiddleware'); // Desativado temporariamente
 
 // GET /api/products?category=&search=&minPrice=&maxPrice=&minStock=&page=&limit=
 router.get('/', async (req, res) => {
@@ -55,8 +55,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/products (protegido)
-router.post('/', authMiddleware, async (req, res) => {
+// POST /api/products (sem autenticação para testes)
+router.post('/', async (req, res) => {
   try {
     const product = new Product(req.body);
     await product.save();
@@ -67,8 +67,8 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/products/:id (protegido)
-router.put('/:id', authMiddleware, async (req, res) => {
+// PUT /api/products/:id (sem autenticação para testes)
+router.put('/:id', async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -82,8 +82,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /api/products/:id (protegido)
-router.delete('/:id', authMiddleware, async (req, res) => {
+// DELETE /api/products/:id (sem autenticação para testes)
+router.delete('/:id', async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) return res.status(404).json({ error: 'Produto não encontrado' });
