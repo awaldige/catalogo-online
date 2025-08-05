@@ -22,10 +22,10 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 6 // Uma senha deve ter no mínimo 6 caracteres
     },
-    role: { // Campo para definir papéis (ex: 'user', 'admin')
+    role: { // Campo para definir papéis (ex: 'admin')
         type: String,
-        enum: ['user', 'admin'], // Apenas esses dois valores são permitidos
-        default: 'user'
+        enum: [ 'admin'], //somente admin
+        default: 'admin'
     }
 }, {
     timestamps: true // Adiciona automaticamente createdAt e updatedAt
@@ -48,3 +48,4 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
+
