@@ -2,18 +2,20 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Meu Catálogo Online - André Waldige</title>
-  <meta name="description" content="Catálogo online profissional criado por André Waldige - Desenvolvedor Web Freelancer.">
-
-  <!-- Fontes e Ícones -->
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
-
-  <!-- CSS externo -->
-  <link rel="stylesheet" href="style.css"/>
+  <meta name="description" content="Catálogo online profissional criado por André Waldige - Desenvolvedor Web Freelancer." />
+  <link rel="stylesheet" href="style.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
 </head>
 <body>
   <header>
@@ -21,17 +23,15 @@
       <h1>Catálogo Online</h1>
       <p>Sua vitrine digital, elegante e funcional.</p>
     </div>
-    <div id="auth-section" style="margin-top: 10px;">
-  <input type="text" id="login-username" placeholder="Usuário" />
-  <input type="password" id="login-password" placeholder="Senha" />
-  <button id="btnLogin" class="button button-primary">Login</button>
-  <button id="btnLogout" class="button button-secondary" style="display:none;">Logout</button>
-  <span id="login-message" style="color:red; margin-left:10px;"></span>
-</div>
-
   </header>
 
   <main>
+    <!-- Controle admin -->
+    <section id="admin-access-section" style="margin-bottom: 20px;">
+      <button id="btnShowAdminPanel" class="button button-primary">Entrar como Admin</button>
+      <button id="btnHideAdminPanel" class="button button-secondary" style="display:none;">Sair do modo Admin</button>
+    </section>
+
     <!-- Busca -->
     <section id="search-section">
       <h2>Encontrar Produtos</h2>
@@ -48,10 +48,10 @@
           <option value="Moda Praia">Moda Praia</option>
           <option value="Moda Íntima">Moda Íntima</option>
         </select>
-        <input type="text" id="search-input" placeholder="Digite o nome ou descrição..."/>
-        <input type="number" id="min-price-input" placeholder="Preço Mín." min="0" step="0.01"/>
-        <input type="number" id="max-price-input" placeholder="Preço Máx." min="0" step="0.01"/>
-        <input type="number" id="min-stock-input" placeholder="Estoque Mín." min="0"/>
+        <input type="text" id="search-input" placeholder="Digite o nome ou descrição..." />
+        <input type="number" id="min-price-input" placeholder="Preço Mín." min="0" step="0.01" />
+        <input type="number" id="max-price-input" placeholder="Preço Máx." min="0" step="0.01" />
+        <input type="number" id="min-stock-input" placeholder="Estoque Mín." min="0" />
         <button id="search-button" class="button button-primary">Buscar</button>
         <button id="clear-search-button" class="button button-secondary">Limpar</button>
       </div>
@@ -76,34 +76,29 @@
       </div>
     </section>
 
-    <!-- Paginação -->
-    <section id="pagination-section">
-      <div class="pagination-controls" id="pagination"></div>
-    </section>
-
     <!-- Admin -->
-    <section id="add-product-section">
+    <section id="add-product-section" style="display:none;">
       <h2>Gerenciar Produtos (Admin)</h2>
       <button id="show-add-form" class="button button-primary">Adicionar Produto</button>
 
       <form id="add-product-form" class="hidden">
         <h3 id="productFormTitle">Adicionar Produto</h3>
-        <input type="hidden" id="product-id"/>
+        <input type="hidden" id="product-id" />
 
         <label for="name">Nome:</label>
-        <input type="text" id="name" required/>
+        <input type="text" id="name" required />
 
         <label for="description">Descrição:</label>
         <textarea id="description"></textarea>
 
         <label for="price">Preço:</label>
-        <input type="number" id="price" step="0.01" required/>
+        <input type="number" id="price" step="0.01" required />
 
         <label for="imageUrl">Imagem (URL):</label>
-        <input type="text" id="imageUrl"/>
+        <input type="text" id="imageUrl" />
 
         <label for="stock">Estoque:</label>
-        <input type="number" id="stock" value="0"/>
+        <input type="number" id="stock" value="0" />
 
         <label for="category">Categoria:</label>
         <select id="category" required>
@@ -130,9 +125,3 @@
   <footer>
     <p>&copy; <span id="current-year"></span> Catálogo Online por André Waldige.</p>
   </footer>
-
-  <!-- JS externo -->
-  <script src="script.js"></script>
-</body>
-</html>
-
