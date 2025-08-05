@@ -368,3 +368,78 @@ document.getElementById('btnLogout').addEventListener('click', () => {
   mostrarOcultarAdmin();
   alert('Você saiu.');
 });
+const loginUsername = document.getElementById('login-username');
+const loginPassword = document.getElementById('login-password');
+const btnLogin = document.getElementById('btnLogin');
+const btnLogout = document.getElementById('btnLogout');
+const loginMessage = document.getElementById('login-message');
+
+btnLogin.addEventListener('click', async () => {
+  const username = loginUsername.value.trim();
+  const password = loginPassword.value.trim();
+
+  if (!username || !password) {
+    loginMessage.textContent = 'Preencha usuário e senha.';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      loginMessage.textContent = errData.message || 'Erro no login.';
+      return;
+    }
+
+    const data = await res.json();
+    localStorage.setItem('token', data.token);
+    loginMessage.textContent = '';
+    loginUsername.value = '';
+    loginPassword.value = '';
+
+    atualizarInterfaceLogin();
+    buscarComFiltros(currentPage);
+    alert('Login efetuado com sucesso!');
+  } catch (error) {
+    console.error(error);
+    loginMessage.textContent = 'Erro ao conectar ao servidor.';
+  }
+});
+
+btnLogout.addEventListener('click', () => {
+  localStorage.removeItem('token');
+  atualizarInterfaceLogin();
+  alert('Logout realizado.');
+  buscarComFiltros(currentPage);
+});
+
+function atualizarInterfaceLogin() {
+  const token = localStorage.getItem('token');
+  const estaLogado = !!token;
+
+  if (estaLogado) {
+    loginUsername.style.display = 'none';
+    loginPassword.style.display = 'none';
+    btnLogin.style.display = 'none';
+    btnLogout.style.display = 'inline-block';
+  } else {
+    loginUsername.style.display = 'inline-block';
+    loginPassword.style.display = 'inline-block';
+    btnLogin.style.display = 'inline-block';
+    btnLogout.style.display = 'none';
+  }
+
+  mostrarOcultarAdmin(); // seu controle de visibilidade do admin
+}
+
+// Chamar ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+  atualizarInterfaceLogin();
+});
+
+
