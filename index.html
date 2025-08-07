@@ -34,7 +34,7 @@
     <section id="search-section">
       <h2>Encontrar Produtos</h2>
       <div class="search-bar">
-        <select id="category-filter">
+        <select id="filter-category"> <!-- alterado para id "filter-category" para alinhar com o JS -->
           <option value="all">Todas as Categorias</option>
           <option value="Feminino">Feminino</option>
           <option value="Masculino">Masculino</option>
@@ -46,10 +46,10 @@
           <option value="Moda Praia">Moda Praia</option>
           <option value="Moda Íntima">Moda Íntima</option>
         </select>
-        <input type="text" id="search-input" placeholder="Digite o nome ou descrição..." />
-        <input type="number" id="min-price-input" placeholder="Preço Mín." min="0" step="0.01" />
-        <input type="number" id="max-price-input" placeholder="Preço Máx." min="0" step="0.01" />
-        <input type="number" id="min-stock-input" placeholder="Estoque Mín." min="0" />
+        <input type="text" id="search" placeholder="Digite o nome ou descrição..." /> <!-- id alterado para "search" -->
+        <input type="number" id="filter-min-price" placeholder="Preço Mín." min="0" step="0.01" />
+        <input type="number" id="filter-max-price" placeholder="Preço Máx." min="0" step="0.01" />
+        <input type="number" id="filter-min-stock" placeholder="Estoque Mín." min="0" />
         <button id="search-button" class="button button-primary">Buscar</button>
         <button id="clear-search-button" class="button button-secondary">Limpar</button>
       </div>
@@ -58,7 +58,8 @@
     <section id="product-list">
       <h2>Nossos Produtos em Destaque</h2>
       <div class="products-container" id="products-container"></div>
-      <div id="pagination" class="pagination"></div>
+      <!-- Paginação: adicionada div wrapper para facilitar estilos -->
+      <nav id="pagination" class="pagination" aria-label="Paginação de produtos"></nav>
     </section>
 
     <section id="shopping-cart-section" class="hidden">
