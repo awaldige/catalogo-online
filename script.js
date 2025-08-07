@@ -207,15 +207,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
       url += `?${params.toString()}`;
 
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`Erro: ${response.status}`);
+     // No Frontend:
+const response = await fetch(url);
+if (!response.ok) throw new Error(`Erro: ${response.status}`);
 
-      const data = await response.json();
+const data = await response.json();
 
-      const products = Array.isArray(data) ? data : data.products;
-      const totalPages = data.totalPages || 1;
+// Extraia os produtos e o totalCount da resposta do backend
+const products = data.products;
+const totalCount = data.totalCount;
 
-      productsContainer.innerHTML = "";
+// Calcule o totalPages com base no totalCount e na quantidade de itens por página
+const totalPages = Math.ceil(totalCount / productsPerPage);
+
+productsContainer.innerHTML = "";
+// ... o resto do seu código que renderiza os produtos ...
+
+renderPaginationControls(totalPages);
 
       if (!Array.isArray(products) || products.length === 0) {
         if (
@@ -544,3 +552,4 @@ document.addEventListener("DOMContentLoaded", () => {
   // Atualizar ano no rodapé
   document.getElementById("current-year").textContent = new Date().getFullYear();
 });
+
