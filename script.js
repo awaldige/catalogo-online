@@ -1,104 +1,153 @@
 // script.js
+
 const API_BASE_URL = "https://catalogo-backend-e14g.onrender.com/api";
-const productsContainer = document.getElementById("products-container");
-const paginationContainer = document.getElementById("pagination");
-const searchInput = document.getElementById("search-input");
-const categoryFilter = document.getElementById("category-filter");
-const minPriceInput = document.getElementById("min-price-input");
-const maxPriceInput = document.getElementById("max-price-input");
-const minStockInput = document.getElementById("min-stock-input");
-const searchButton = document.getElementById("search-button");
-const clearSearchButton = document.getElementById("clear-search-button");
-
 let currentPage = 1;
-const PRODUCTS_PER_PAGE = 9;
+let totalPages = 1;
+let isAdmin = false;
 
-async function getProducts(page = 1) {
-  currentPage = page;
-  let url = `${API_BASE_URL}/products?page=${page}&limit=${PRODUCTS_PER_PAGE}`;
+function fetchProducts(page = 1) {
+  const category = document.getElementById("category-filter").value;
+  const search = document.getElementById("search-input").value.trim();
+  const minPrice = document.getElementById("min-price-input").value;
+  const maxPrice = document.getElementById("max-price-input").value;
+  const minStock = document.getElementById("min-stock-input").value;
 
-  // Adiciona filtros
-  const search = searchInput.value.trim();
-  const category = categoryFilter.value;
-  const minPrice = minPriceInput.value;
-  const maxPrice = maxPriceInput.value;
-  const minStock = minStockInput.value;
+  const params = new URLSearchParams({
+    page,
+    category,
+    search,
+    minPrice,
+    maxPrice,
+    minStock,
+  });
 
-  const params = new URLSearchParams();
-  if (search) params.append("search", search);
-  if (category && category !== "all") params.append("category", category);
-  if (minPrice) params.append("minPrice", minPrice);
-  if (maxPrice) params.append("maxPrice", maxPrice);
-  if (minStock) params.append("minStock", minStock);
-
-  if ([...params].length > 0) {
-    url += `&${params.toString()}`;
-  }
-
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (!Array.isArray(data.products)) {
-      productsContainer.innerHTML = "<p>Nenhum produto encontrado.</p>";
-      paginationContainer.innerHTML = "";
-      return;
-    }
-
-    renderProducts(data.products);
-    renderPagination(data.totalPages, data.currentPage);
-  } catch (err) {
-    console.error("Erro ao buscar produtos:", err);
-    productsContainer.innerHTML = "<p>Erro ao carregar produtos.</p>";
-  }
+  fetch(`${API_BASE_URL}/products?${params.toString()}`)
+    .then((res) => res.json())
+    .then((data) => {
+      displayProducts(data.products);
+      setupPagination(data.totalPages, data.currentPage);
+    })
+    .catch((err) => console.error("Erro ao buscar produtos:", err));
 }
 
-function renderProducts(products) {
-  productsContainer.innerHTML = "";
+function displayProducts(products) {
+  const container = document.getElementById("products-container");
+  container.innerHTML = "";
   if (products.length === 0) {
-    productsContainer.innerHTML = "<p>Nenhum produto encontrado.</p>";
+    container.innerHTML = "<p>Nenhum produto encontrado.</p>";
     return;
   }
+
   products.forEach((product) => {
-    const card = document.createElement("div");
-    card.className = "product-card";
-    card.innerHTML = `
+    const productEl = document.createElement("div");
+    productEl.className = "product-card";
+    productEl.innerHTML = `
       <img src="${product.imageUrl}" alt="${product.name}" />
       <h3>${product.name}</h3>
       <p>${product.description}</p>
-      <p><strong>R$ ${product.price.toFixed(2)}</strong></p>
+      <p>Preço: R$ ${product.price.toFixed(2)}</p>
       <p>Estoque: ${product.stock}</p>
       <p>Categoria: ${product.category}</p>
     `;
-    productsContainer.appendChild(card);
+    container.appendChild(productEl);
   });
 }
 
-function renderPagination(totalPages, currentPage) {
-  paginationContainer.innerHTML = "";
-  if (totalPages <= 1) return;
+function setupPagination(total, current) {
+  totalPages = total;
+  currentPage = current;
 
-  for (let page = 1; page <= totalPages; page++) {
+  const paginationEl = document.getElementById("pagination");
+  paginationEl.innerHTML = "";
+
+  for (let i = 1; i <= total; i++) {
     const btn = document.createElement("button");
-    btn.textContent = page;
-    btn.className = "page-btn";
-    if (page === currentPage) btn.classList.add("active");
-    btn.addEventListener("click", () => getProducts(page));
-    paginationContainer.appendChild(btn);
+    btn.className = `pagination-button ${i === current ? "active" : ""}`;
+    btn.textContent = i;
+    btn.addEventListener("click", () => {
+      fetchProducts(i);
+    });
+    paginationEl.appendChild(btn);
   }
 }
 
-searchButton.addEventListener("click", () => getProducts(1));
-clearSearchButton.addEventListener("click", () => {
-  searchInput.value = "";
-  categoryFilter.value = "all";
-  minPriceInput.value = "";
-  maxPriceInput.value = "";
-  minStockInput.value = "";
-  getProducts(1);
-});
+function toggleAdminPanel(show) {
+  const adminSection = document.getElementById("add-product-section");
+  const btnShow = document.getElementById("btnShowAdminPanel");
+  const btnHide = document.getElementById("btnHideAdminPanel");
+
+  if (show) {
+    isAdmin = true;
+    adminSection.style.display = "block";
+    btnShow.style.display = "none";
+    btnHide.style.display = "inline-block";
+  } else {
+    isAdmin = false;
+    adminSection.style.display = "none";
+    btnShow.style.display = "inline-block";
+    btnHide.style.display = "none";
+  }
+}
+
+function setupEventListeners() {
+  document.getElementById("search-button").addEventListener("click", () => fetchProducts(1));
+  document.getElementById("clear-search-button").addEventListener("click", () => {
+    document.getElementById("category-filter").value = "all";
+    document.getElementById("search-input").value = "";
+    document.getElementById("min-price-input").value = "";
+    document.getElementById("max-price-input").value = "";
+    document.getElementById("min-stock-input").value = "";
+    fetchProducts(1);
+  });
+
+  document.getElementById("btnShowAdminPanel").addEventListener("click", () => toggleAdminPanel(true));
+  document.getElementById("btnHideAdminPanel").addEventListener("click", () => toggleAdminPanel(false));
+
+  document.getElementById("cancel-form").addEventListener("click", () => {
+    document.getElementById("add-product-form").reset();
+    document.getElementById("add-product-form").classList.add("hidden");
+  });
+
+  document.getElementById("show-add-form").addEventListener("click", () => {
+    document.getElementById("add-product-form").classList.remove("hidden");
+    document.getElementById("productFormTitle").textContent = "Adicionar Produto";
+  });
+
+  document.getElementById("add-product-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!isAdmin) return alert("Acesso não autorizado");
+
+    const id = document.getElementById("product-id").value;
+    const product = {
+      name: document.getElementById("name").value,
+      description: document.getElementById("description").value,
+      price: parseFloat(document.getElementById("price").value),
+      imageUrl: document.getElementById("imageUrl").value,
+      stock: parseInt(document.getElementById("stock").value),
+      category: document.getElementById("category").value,
+    };
+
+    const method = id ? "PUT" : "POST";
+    const url = id ? `${API_BASE_URL}/products/${id}` : `${API_BASE_URL}/products`;
+
+    fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(product),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        fetchProducts(currentPage);
+        document.getElementById("add-product-form").reset();
+        document.getElementById("add-product-form").classList.add("hidden");
+      })
+      .catch((err) => console.error("Erro ao salvar produto:", err));
+  });
+}
+
+document.getElementById("current-year").textContent = new Date().getFullYear();
 
 document.addEventListener("DOMContentLoaded", () => {
-  getProducts();
-  document.getElementById("current-year").textContent = new Date().getFullYear();
+  setupEventListeners();
+  fetchProducts();
 });
