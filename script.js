@@ -1,42 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // --- 1. CONFIGURAÇÕES INICIAIS ---
   const API_BASE_URL = "https://catalogo-backend-e14g.onrender.com/api";
-
-  // --- CONFIGURAÇÃO WHATSAPP ---
-  const SEU_TELEFONE = "5511999999999"; // Substitua pelo seu número (DDI + DDD + Numero)
-
-  // Elementos admin toggle
+  const SEU_TELEFONE = "5511985878638"; 
+  // --- 2. SELETORES DE ELEMENTOS ---
+  // Admin
   const btnShowAdminPanel = document.getElementById("btnShowAdminPanel");
   const btnHideAdminPanel = document.getElementById("btnHideAdminPanel");
   const addProductSection = document.getElementById("add-product-section");
-
-  btnShowAdminPanel.addEventListener("click", () => {
-    addProductSection.style.display = "block";
-    btnShowAdminPanel.style.display = "none";
-    btnHideAdminPanel.style.display = "inline-block";
-    toggleAdminButtons(); 
-  });
-
-  btnHideAdminPanel.addEventListener("click", () => {
-    addProductSection.style.display = "none";
-    btnShowAdminPanel.style.display = "inline-block";
-    btnHideAdminPanel.style.display = "none";
-    toggleAdminButtons();
-  });
-
-  // Controle produtos e filtros
-  const productsContainer = document.getElementById("products-container");
-  const searchInput = document.getElementById("search-input");
-  const searchButton = document.getElementById("search-button");
-  const clearSearchButton = document.getElementById("clear-search-button");
-  const categoryFilterSelect = document.getElementById("category-filter");
-  const minPriceInput = document.getElementById("min-price-input");
-  const maxPriceInput = document.getElementById("max-price-input");
-  const minStockInput = document.getElementById("min-stock-input");
-  const paginationControls = document.getElementById("pagination");
-  const productsPerPage = 9;
-  let currentPage = 1;
-
-  // Formulário admin
   const showAddFormButton = document.getElementById("show-add-form");
   const addProductForm = document.getElementById("add-product-form");
   const cancelFormButton = document.getElementById("cancel-form");
@@ -49,6 +19,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const categoryInput = document.getElementById("category");
   const productFormTitle = document.getElementById("productFormTitle");
 
+  // Catálogo e Filtros
+  const productsContainer = document.getElementById("products-container");
+  const searchInput = document.getElementById("search-input");
+  const searchButton = document.getElementById("search-button");
+  const clearSearchButton = document.getElementById("clear-search-button");
+  const categoryFilterSelect = document.getElementById("category-filter");
+  const minPriceInput = document.getElementById("min-price-input");
+  const maxPriceInput = document.getElementById("max-price-input");
+  const minStockInput = document.getElementById("min-stock-input");
+  const paginationControls = document.getElementById("pagination");
+
   // Carrinho
   const shoppingCartSection = document.getElementById("shopping-cart-section");
   const cartItemsContainer = document.getElementById("cart-items-container");
@@ -58,21 +39,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const clearCartButton = document.getElementById("clear-cart-button");
   const checkoutButton = document.getElementById("checkout-button");
 
+  // --- 3. ESTADO DA APLICAÇÃO ---
   let cart = [];
-
-  // Estado filtros
+  const productsPerPage = 9;
+  let currentPage = 1;
   let currentSearchTerm = "";
   let currentCategoryFilter = "all";
   let currentMinPrice = "";
   let currentMaxPrice = "";
   let currentMinStock = "";
 
-  // --- Funções do carrinho ---
+  // --- 4. LÓGICA DO CARRINHO ---
+
   function loadCartFromLocalStorage() {
     const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      cart = JSON.parse(storedCart);
-    }
+    if (storedCart) cart = JSON.parse(storedCart);
     renderCart();
   }
 
@@ -86,27 +67,29 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (cart.length === 0) {
       emptyCartMessage.style.display = "block";
-      shoppingCartSection.classList.add("hidden"); // Esconde se vazio
+      shoppingCartSection.classList.add("hidden");
     } else {
       emptyCartMessage.style.display = "none";
-      shoppingCartSection.classList.remove("hidden"); // Mostra se tiver itens
+      shoppingCartSection.classList.remove("hidden");
 
       cart.forEach((item) => {
         const cartItemDiv = document.createElement("div");
         cartItemDiv.classList.add("cart-item");
         cartItemDiv.innerHTML = `
-                <img src="${item.imageUrl || "https://via.placeholder.com/80x80?text=Produto"}" alt="${item.name}">
-                <div class="cart-item-details">
-                    <h4>${item.name}</h4>
-                    <p>R$ ${item.price ? item.price.toFixed(2).replace(".", ",") : "0,00"}</p>
-                    <div class="quantity-controls">
-                        <button class="button-small quantity-minus" data-id="${item._id}">-</button>
-                        <span>${item.quantity}</span>
-                        <button class="button-small quantity-plus" data-id="${item._id}" data-stock="${item.stock}">+</button>
-                    </div>
-                </div>
-                <button class="button-small button-danger remove-from-cart" data-id="${item._id}">Remover</button>
-            `;
+          <img src="${item.imageUrl || 'https://via.placeholder.com/80'}" alt="${item.name}">
+          <div class="cart-item-details">
+            <h4>${item.name}</h4>
+            <p>R$ ${item.price.toFixed(2).replace(".", ",")}</p>
+            <div class="quantity-controls">
+              <button class="button-small quantity-minus" data-id="${item._id}">-</button>
+              <span>${item.quantity}</span>
+              <button class="button-small quantity-plus" data-id="${item._id}" data-stock="${item.stock}">+</button>
+            </div>
+          </div>
+          <button class="button-small button-danger remove-from-cart" data-id="${item._id}">
+            <i class="fa fa-trash"></i>
+          </button>
+        `;
         cartItemsContainer.appendChild(cartItemDiv);
       });
     }
@@ -120,155 +103,217 @@ document.addEventListener("DOMContentLoaded", () => {
     if(cartItemCountSpan) cartItemCountSpan.textContent = totalItems;
     if(cartTotalSpan) cartTotalSpan.textContent = `R$ ${totalPrice.toFixed(2).replace(".", ",")}`;
     
-    // Habilita ou desabilita botões
     if(clearCartButton) clearCartButton.disabled = cart.length === 0;
     if(checkoutButton) checkoutButton.disabled = cart.length === 0;
   }
 
-  function updateQuantity(productId, change) {
-    const itemIndex = cart.findIndex((item) => item._id === productId);
-    if (itemIndex === -1) return;
-    const item = cart[itemIndex];
-    const newQuantity = item.quantity + change;
-    if (change > 0 && newQuantity > item.stock) {
-      alert(`Estoque insuficiente!`);
-      return;
+  // Ações de clique no carrinho (Delegação de evento)
+  cartItemsContainer.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const id = btn.dataset.id;
+
+    if (btn.classList.contains("quantity-plus")) {
+        const item = cart.find(i => i._id === id);
+        if (item.quantity < item.stock) {
+            item.quantity++;
+            saveCartToLocalStorage();
+        } else {
+            alert("Limite de estoque atingido.");
+        }
+    } else if (btn.classList.contains("quantity-minus")) {
+        const itemIndex = cart.findIndex(i => i._id === id);
+        if (cart[itemIndex].quantity > 1) {
+            cart[itemIndex].quantity--;
+        } else {
+            cart.splice(itemIndex, 1);
+        }
+        saveCartToLocalStorage();
+    } else if (btn.classList.contains("remove-from-cart")) {
+        cart = cart.filter(i => i._id !== id);
+        saveCartToLocalStorage();
     }
-    if (newQuantity > 0) item.quantity = newQuantity;
-    else cart.splice(itemIndex, 1);
-    saveCartToLocalStorage();
-  }
+  });
 
-  function removeItemFromCart(productId) {
-    cart = cart.filter((item) => item._id !== productId);
-    saveCartToLocalStorage();
-  }
-
-  // --- BOTÕES DE AÇÃO DO CARRINHO (ESVAZIAR E FINALIZAR) ---
-  
-  // Esvaziar
+  // BOTÃO ESVAZIAR
   if (clearCartButton) {
     clearCartButton.onclick = () => {
-      if (confirm("Deseja limpar todo o carrinho?")) {
+      if (confirm("Deseja realmente limpar o carrinho?")) {
         cart = [];
         saveCartToLocalStorage();
       }
     };
   }
 
-  // Finalizar (WhatsApp)
+  // BOTÃO FINALIZAR (WHATSAPP)
   if (checkoutButton) {
-    checkoutButton.onclick = () => {
+    checkoutButton.onclick = (e) => {
+      e.preventDefault();
       if (cart.length === 0) return;
 
-      let mensagem = `*Novo Pedido - Catálogo André Waldige*\n\n`;
+      let mensagem = `*NOVO PEDIDO - CATÁLOGO ANDRÉ*\n\n`;
       cart.forEach(item => {
-        mensagem += `• ${item.name} (x${item.quantity}) - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
+        const sub = (item.price * item.quantity).toFixed(2).replace(".", ",");
+        mensagem += `✅ *${item.name}*\n   Qtd: ${item.quantity} | Total: R$ ${sub}\n\n`;
       });
       
-      const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      mensagem += `\n*Total: R$ ${total.toFixed(2).replace(".", ",")}*`;
+      const totalGeral = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      mensagem += `*TOTAL DO PEDIDO: R$ ${totalGeral.toFixed(2).replace(".", ",")}*`;
 
       const encodedMsg = encodeURIComponent(mensagem);
-      window.open(`https://wa.me/${SEU_TELEFONE}?text=${encodedMsg}`, '_blank');
-      
-      // Opcional: Limpar carrinho após enviar
-      // cart = []; saveCartToLocalStorage();
+      // location.href é mais seguro contra bloqueios de pop-up que window.open
+      window.location.href = `https://api.whatsapp.com/send?phone=${SEU_TELEFONE}&text=${encodedMsg}`;
     };
   }
 
-  // --- Funções de API e Busca ---
+  // --- 5. BUSCA DE PRODUTOS ---
+
   async function fetchProducts() {
     try {
       productsContainer.innerHTML = '<p class="info-message">Carregando catálogo...</p>';
-      let url = `${API_BASE_URL}/products`;
-      const params = new URLSearchParams();
-      params.append("page", currentPage);
-      params.append("limit", productsPerPage);
-      if (currentSearchTerm) params.append("search", currentSearchTerm);
-      if (currentCategoryFilter !== "all") params.append("category", currentCategoryFilter);
-      if (currentMinPrice) params.append("minPrice", currentMinPrice);
-      if (currentMaxPrice) params.append("maxPrice", currentMaxPrice);
-      if (currentMinStock) params.append("minStock", currentMinStock);
+      
+      let url = `${API_BASE_URL}/products?page=${currentPage}&limit=${productsPerPage}`;
+      if (currentSearchTerm) url += `&search=${currentSearchTerm}`;
+      if (currentCategoryFilter !== "all") url += `&category=${currentCategoryFilter}`;
+      if (currentMinPrice) url += `&minPrice=${currentMinPrice}`;
+      if (currentMaxPrice) url += `&maxPrice=${currentMaxPrice}`;
+      if (currentMinStock) url += `&minStock=${currentMinStock}`;
 
-      url += `?${params.toString()}`;
       const response = await fetch(url);
       const data = await response.json();
-      
+
       productsContainer.innerHTML = "";
 
-      if (data.products.length === 0) {
-        productsContainer.innerHTML = '<p class="info-message">Nada encontrado.</p>';
+      if (!data.products || data.products.length === 0) {
+        productsContainer.innerHTML = '<p class="info-message">Nenhum produto encontrado.</p>';
       } else {
         data.products.forEach((product) => {
           const productCard = document.createElement("div");
           productCard.classList.add("product-card");
           productCard.innerHTML = `
-                    <div class="product-image-container">
-                      <img src="${product.imageUrl || "https://via.placeholder.com/280x200"}" loading="lazy">
-                    </div>
-                    <div class="product-card-content">
-                        <h3>${product.name}</h3>
-                        <p class="price">R$ ${product.price.toFixed(2).replace(".", ",")}</p>
-                        <div class="product-actions" style="display: none;" id="actions-${product._id}">
-                            <button class="button button-secondary" onclick="editProduct('${product._id}')">Editar</button>
-                            <button class="button button-danger" onclick="deleteProduct('${product._id}')">Excluir</button>
-                        </div>
-                        <button class="button button-primary add-to-cart-button" data-product-id="${product._id}">Adicionar ao Carrinho</button>
-                    </div>
-                `;
+            <div class="product-image-container">
+                <img src="${product.imageUrl || 'https://via.placeholder.com/280x200'}" 
+                     loading="lazy" decoding="async">
+            </div>
+            <div class="product-card-content">
+                <h3>${product.name}</h3>
+                <p class="price">R$ ${product.price.toFixed(2).replace(".", ",")}</p>
+                <p style="font-size: 12px; color: #777;">Estoque: ${product.stock}</p>
+                <div class="product-actions" style="display: none;" id="actions-${product._id}">
+                    <button class="button-small button-secondary edit-btn" data-id="${product._id}">Editar</button>
+                    <button class="button-small button-danger delete-btn" data-id="${product._id}">Excluir</button>
+                </div>
+                <button class="button button-primary add-to-cart-button" data-product-id="${product._id}">
+                    <i class="fa fa-cart-plus"></i> Adicionar ao Carrinho
+                </button>
+            </div>
+          `;
           productsContainer.appendChild(productCard);
         });
         toggleAdminButtons();
       }
-      renderPaginationControls(Math.ceil(data.totalCount / productsPerPage));
-    } catch (e) { console.error(e); }
+      renderPagination(Math.ceil(data.totalCount / productsPerPage));
+    } catch (err) {
+      productsContainer.innerHTML = '<p class="error-message">Erro ao carregar catálogo.</p>';
+    }
   }
 
-  // Eventos Gerais
+  // Adicionar ao carrinho (Delegação no container de produtos)
   productsContainer.addEventListener("click", async (e) => {
-    if (e.target.classList.contains("add-to-cart-button")) {
-      const id = e.target.dataset.productId;
-      const res = await fetch(`${API_BASE_URL}/products/${id}`);
-      const p = await res.json();
-      const existing = cart.find(i => i._id === id);
-      if (existing) existing.quantity++;
-      else cart.push({...p, quantity: 1});
-      saveCartToLocalStorage();
+    const target = e.target.closest(".add-to-cart-button");
+    if (target) {
+        const id = target.dataset.productId;
+        try {
+            const res = await fetch(`${API_BASE_URL}/products/${id}`);
+            const product = await res.json();
+            
+            if (product.stock <= 0) {
+                alert("Produto sem estoque.");
+                return;
+            }
+
+            const existing = cart.find(i => i._id === id);
+            if (existing) {
+                if (existing.quantity < product.stock) existing.quantity++;
+                else alert("Máximo em estoque atingido.");
+            } else {
+                cart.push({...product, quantity: 1});
+            }
+            saveCartToLocalStorage();
+        } catch (err) { alert("Erro ao adicionar produto."); }
     }
+    
+    // Botões de Admin (Editar/Excluir)
+    if (e.target.classList.contains("edit-btn")) editProduct(e.target.dataset.id);
+    if (e.target.classList.contains("delete-btn")) deleteProduct(e.target.dataset.id);
   });
 
-  cartItemsContainer.addEventListener("click", (e) => {
-    const id = e.target.dataset.id;
-    if (e.target.classList.contains("quantity-plus")) updateQuantity(id, 1);
-    if (e.target.classList.contains("quantity-minus")) updateQuantity(id, -1);
-    if (e.target.classList.contains("remove-from-cart")) removeItemFromCart(id);
-  });
+  // --- 6. ADMIN E AUXILIARES ---
+
+  function toggleAdminButtons() {
+    const isAdmin = addProductSection.style.display === "block";
+    document.querySelectorAll("[id^='actions-']").forEach(div => {
+      div.style.display = isAdmin ? "flex" : "none";
+    });
+  }
+
+  btnShowAdminPanel.onclick = () => {
+    addProductSection.style.display = "block";
+    btnShowAdminPanel.style.display = "none";
+    btnHideAdminPanel.style.display = "inline-block";
+    toggleAdminButtons();
+  };
+
+  btnHideAdminPanel.onclick = () => {
+    addProductSection.style.display = "none";
+    btnShowAdminPanel.style.display = "inline-block";
+    btnHideAdminPanel.style.display = "none";
+    toggleAdminButtons();
+  };
+
+  async function editProduct(id) {
+    const res = await fetch(`${API_BASE_URL}/products/${id}`);
+    const p = await res.json();
+    addProductForm.classList.remove("hidden");
+    productIdInput.value = p._id;
+    nameInput.value = p.name;
+    descriptionInput.value = p.description;
+    priceInput.value = p.price;
+    imageUrlInput.value = p.imageUrl;
+    stockInput.value = p.stock;
+    categoryInput.value = p.category;
+    productFormTitle.textContent = "Editar Produto";
+    window.scrollTo({ top: addProductSection.offsetTop, behavior: 'smooth' });
+  }
+
+  async function deleteProduct(id) {
+    if (confirm("Excluir permanentemente?")) {
+        await fetch(`${API_BASE_URL}/products/${id}`, { method: 'DELETE' });
+        fetchProducts();
+    }
+  }
 
   searchButton.onclick = () => {
-    currentSearchTerm = searchInput.value;
+    currentSearchTerm = searchInput.value.trim();
     currentCategoryFilter = categoryFilterSelect.value;
     currentPage = 1;
     fetchProducts();
   };
 
-  // Funções Admin Auxiliares
-  window.editProduct = async (id) => {
-    const res = await fetch(`${API_BASE_URL}/products/${id}`);
-    const p = await res.json();
-    addProductSection.style.display = "block";
-    addProductForm.classList.remove("hidden");
-    productIdInput.value = p._id;
-    nameInput.value = p.name;
-    priceInput.value = p.price;
-    fetchProducts();
-  };
-
-  function toggleAdminButtons() {
-    const isAdmin = addProductSection.style.display === "block";
-    document.querySelectorAll("[id^='actions-']").forEach(div => div.style.display = isAdmin ? "flex" : "none");
+  function renderPagination(totalPages) {
+    paginationControls.innerHTML = "";
+    if (totalPages <= 1) return;
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.innerText = i;
+        btn.classList.add("pagination-button");
+        if (i === currentPage) btn.classList.add("active");
+        btn.onclick = () => { currentPage = i; fetchProducts(); window.scrollTo(0,0); };
+        paginationControls.appendChild(btn);
+    }
   }
 
+  // --- 7. INICIALIZAÇÃO ---
   loadCartFromLocalStorage();
   fetchProducts();
   document.getElementById("current-year").textContent = new Date().getFullYear();
