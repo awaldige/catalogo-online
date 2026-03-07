@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- 1. CONFIGURAÇÕES INICIAIS ---
   const API_BASE_URL = "https://catalogo-backend-e14g.onrender.com/api";
   const SEU_TELEFONE = "5511985878638"; 
+
   // --- 2. SELETORES DE ELEMENTOS ---
   // Admin
   const btnShowAdminPanel = document.getElementById("btnShowAdminPanel");
@@ -107,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if(checkoutButton) checkoutButton.disabled = cart.length === 0;
   }
 
-  // Ações de clique no carrinho (Delegação de evento)
+  // Ações de clique no carrinho
   cartItemsContainer.addEventListener("click", (e) => {
     const btn = e.target.closest("button");
     if (!btn) return;
@@ -145,24 +146,54 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // BOTÃO FINALIZAR (WHATSAPP)
+  // BOTÃO FINALIZAR (WHATSAPP COM DADOS COMPLETO)
   if (checkoutButton) {
     checkoutButton.onclick = (e) => {
       e.preventDefault();
-      if (cart.length === 0) return;
+      
+      const nomeCliente = document.getElementById("customer-name").value.trim();
+      const enderecoCliente = document.getElementById("customer-address").value.trim();
+      const pagamento = document.getElementById("payment-method").value;
 
-      let mensagem = `*NOVO PEDIDO - CATÁLOGO ANDRÉ*\n\n`;
+      if (cart.length === 0) return;
+      
+      if (!nomeCliente || !enderecoCliente) {
+        alert("Por favor, preencha seu nome e endereço para entrega.");
+        return;
+      }
+
+      let mensagem = `*📦 NOVO PEDIDO - CATÁLOGO ANDRÉ*\n`;
+      mensagem += `------------------------------------------\n`;
+      mensagem += `👤 *CLIENTE:* ${nomeCliente}\n`;
+      mensagem += `📍 *ENTREGA:* ${enderecoCliente}\n`;
+      mensagem += `💳 *PAGAMENTO:* ${pagamento}\n`;
+      mensagem += `------------------------------------------\n\n`;
+      
       cart.forEach(item => {
         const sub = (item.price * item.quantity).toFixed(2).replace(".", ",");
-        mensagem += `✅ *${item.name}*\n   Qtd: ${item.quantity} | Total: R$ ${sub}\n\n`;
+        mensagem += `✅ *${item.name}*\n   Qtd: ${item.quantity} | Subtotal: R$ ${sub}\n\n`;
       });
       
       const totalGeral = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      mensagem += `*TOTAL DO PEDIDO: R$ ${totalGeral.toFixed(2).replace(".", ",")}*`;
+      
+      mensagem += `------------------------------------------\n`;
+      mensagem += `💰 *TOTAL DO PEDIDO: R$ ${totalGeral.toFixed(2).replace(".", ",")}*\n`;
+      mensagem += `------------------------------------------\n`;
+      mensagem += `_Pedido gerado via Catálogo Online._`;
 
       const encodedMsg = encodeURIComponent(mensagem);
-      // location.href é mais seguro contra bloqueios de pop-up que window.open
-      window.location.href = `https://api.whatsapp.com/send?phone=${SEU_TELEFONE}&text=${encodedMsg}`;
+      const urlZap = `https://api.whatsapp.com/send?phone=${SEU_TELEFONE}&text=${encodedMsg}`;
+
+      // Resetar o site após o envio
+      cart = [];
+      saveCartToLocalStorage();
+      document.getElementById("customer-name").value = "";
+      document.getElementById("customer-address").value = "";
+
+      // Abrir WhatsApp
+      window.open(urlZap, '_blank');
+      
+      alert("Pedido enviado com sucesso! Finalize o envio no WhatsApp.");
     };
   }
 
@@ -171,7 +202,6 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchProducts() {
     try {
       productsContainer.innerHTML = '<p class="info-message">Carregando catálogo...</p>';
-      
       let url = `${API_BASE_URL}/products?page=${currentPage}&limit=${productsPerPage}`;
       if (currentSearchTerm) url += `&search=${currentSearchTerm}`;
       if (currentCategoryFilter !== "all") url += `&category=${currentCategoryFilter}`;
@@ -181,7 +211,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const response = await fetch(url);
       const data = await response.json();
-
       productsContainer.innerHTML = "";
 
       if (!data.products || data.products.length === 0) {
@@ -192,8 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
           productCard.classList.add("product-card");
           productCard.innerHTML = `
             <div class="product-image-container">
-                <img src="${product.imageUrl || 'https://via.placeholder.com/280x200'}" 
-                     loading="lazy" decoding="async">
+                <img src="${product.imageUrl || 'https://via.placeholder.com/280x200'}" loading="lazy" decoding="async">
             </div>
             <div class="product-card-content">
                 <h3>${product.name}</h3>
@@ -218,7 +246,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Adicionar ao carrinho (Delegação no container de produtos)
   productsContainer.addEventListener("click", async (e) => {
     const target = e.target.closest(".add-to-cart-button");
     if (target) {
@@ -226,12 +253,10 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const res = await fetch(`${API_BASE_URL}/products/${id}`);
             const product = await res.json();
-            
             if (product.stock <= 0) {
                 alert("Produto sem estoque.");
                 return;
             }
-
             const existing = cart.find(i => i._id === id);
             if (existing) {
                 if (existing.quantity < product.stock) existing.quantity++;
@@ -242,8 +267,6 @@ document.addEventListener("DOMContentLoaded", () => {
             saveCartToLocalStorage();
         } catch (err) { alert("Erro ao adicionar produto."); }
     }
-    
-    // Botões de Admin (Editar/Excluir)
     if (e.target.classList.contains("edit-btn")) editProduct(e.target.dataset.id);
     if (e.target.classList.contains("delete-btn")) deleteProduct(e.target.dataset.id);
   });
@@ -313,7 +336,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- 7. INICIALIZAÇÃO ---
   loadCartFromLocalStorage();
   fetchProducts();
   document.getElementById("current-year").textContent = new Date().getFullYear();
