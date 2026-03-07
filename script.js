@@ -113,10 +113,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateCartSummary() {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    cartItemCountSpan.textContent = totalItems;
-    cartTotalSpan.textContent = `R$ ${totalPrice.toFixed(2).replace(".", ",")}`;
-    clearCartButton.disabled = cart.length === 0;
-    checkoutButton.disabled = cart.length === 0;
+    
+    if(cartItemCountSpan) cartItemCountSpan.textContent = totalItems;
+    if(cartTotalSpan) cartTotalSpan.textContent = `R$ ${totalPrice.toFixed(2).replace(".", ",")}`;
+    
+    // Garante que os botões só funcionem se houver itens
+    if(clearCartButton) clearCartButton.disabled = cart.length === 0;
+    if(checkoutButton) checkoutButton.disabled = cart.length === 0;
   }
 
   function updateQuantity(productId, change) {
@@ -169,9 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Funções dos produtos e filtros ---
   async function fetchProducts() {
     try {
-      // Feedback visual de carregamento
       productsContainer.innerHTML = '<p class="info-message">Carregando catálogo...</p>';
-      
       let url = `${API_BASE_URL}/products`;
       const params = new URLSearchParams();
       params.append("page", currentPage);
@@ -200,8 +201,6 @@ document.addEventListener("DOMContentLoaded", () => {
         products.forEach((product) => {
           const productCard = document.createElement("div");
           productCard.classList.add("product-card");
-          
-          // OTIMIZAÇÃO DE IMAGEM: Lazy Loading + Decoding Async + Error Handler
           productCard.innerHTML = `
                     <div class="product-image-container">
                       <img src="${product.imageUrl || "https://via.placeholder.com/280x200?text=Sem+Imagem"}" 
@@ -230,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderPaginationControls(totalPages);
     } catch (error) {
       console.error("Erro ao buscar produtos:", error);
-      productsContainer.innerHTML = '<p class="error-message">Erro ao conectar com o servidor. Tente atualizar a página.</p>';
+      productsContainer.innerHTML = '<p class="error-message">Erro ao conectar com o servidor.</p>';
     }
   }
 
@@ -253,13 +252,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     paginationControls.appendChild(createBtn("Anterior", currentPage - 1, currentPage === 1));
-
     for (let i = 1; i <= totalPages; i++) {
       if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
         paginationControls.appendChild(createBtn(i, i, false, i === currentPage));
       }
     }
-
     paginationControls.appendChild(createBtn("Próximo", currentPage + 1, currentPage === totalPages));
   }
 
@@ -374,6 +371,31 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (e.target.classList.contains("quantity-minus")) updateQuantity(id, -1);
     else if (e.target.classList.contains("remove-from-cart")) removeItemFromCart(id);
   });
+
+  // --- ADICIONADO: Lógica dos botões de ação do carrinho ---
+
+  if (clearCartButton) {
+    clearCartButton.addEventListener("click", () => {
+      if (cart.length === 0) return;
+      if (confirm("Tem certeza que deseja esvaziar o carrinho?")) {
+        cart = [];
+        saveCartToLocalStorage();
+        alert("Carrinho esvaziado!");
+      }
+    });
+  }
+
+  if (checkoutButton) {
+    checkoutButton.addEventListener("click", () => {
+      if (cart.length === 0) return;
+      
+      const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      alert(`Compra finalizada com sucesso!\nValor total: R$ ${total.toFixed(2).replace(".", ",")}`);
+      
+      cart = [];
+      saveCartToLocalStorage();
+    });
+  }
 
   // Inicialização
   loadCartFromLocalStorage();
