@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Meu Catálogo Online - André Waldige</title>
-  <meta name="description" content="Catálogo online profissional criado por André Waldige." />
-  
+  <title>Catálogo Online - André Waldige</title>
+  <meta name="description" content="Catálogo online profissional." />
   <link rel="icon" type="image/jpeg" href="Catalogodeprodutosonline.jpg">
   
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 <body>
@@ -23,16 +22,12 @@
 
   <main>
     <section id="admin-access-section">
-      <button id="btnShowAdminPanel" class="button button-primary">
-        <i class="fa fa-lock"></i> Entrar como Admin
-      </button>
-      <button id="btnHideAdminPanel" class="button button-secondary hidden">
-        <i class="fa fa-unlock"></i> Sair do modo Admin
-      </button>
+      <button id="btnShowAdminPanel" class="button button-primary">Entrar como Admin</button>
+      <button id="btnHideAdminPanel" class="button button-secondary hidden">Sair do modo Admin</button>
     </section>
 
     <section id="search-section">
-      <h2><i class="fa fa-search"></i> Encontrar Produtos</h2>
+      <h2>Encontrar Produtos</h2>
       <div class="search-bar">
         <select id="category-filter">
           <option value="all">Todas as Categorias</option>
@@ -47,140 +42,52 @@
           <option value="Moda Íntima">Moda Íntima</option>
         </select>
         <input type="text" id="search-input" placeholder="O que você procura?" />
-        
-        <div class="filter-group">
-          <input type="number" id="min-price-input" placeholder="R$ Min." />
-          <input type="number" id="max-price-input" placeholder="R$ Máx." />
-        </div>
-
         <button id="search-button" class="button button-primary">Buscar</button>
-        <button id="clear-search-button" class="button button-secondary">Limpar</button>
       </div>
     </section>
 
     <section id="product-list">
-      <h2><i class="fa fa-star"></i> Nossos Produtos</h2>
       <div class="products-container" id="products-container">
         </div>
       <div id="pagination" class="pagination"></div>
     </section>
 
     <section id="shopping-cart-section" class="hidden">
-      <h2><i class="fa fa-shopping-cart"></i> Seu Carrinho (<span id="cart-item-count">0</span>)</h2>
-      
+      <h2>Seu Carrinho (<span id="cart-item-count">0</span>)</h2>
       <div class="cart-items-container" id="cart-items-container">
         <p id="empty-cart-message">Seu carrinho está vazio.</p>
       </div>
-
-      <div id="checkout-details">
-        <h3>Finalizar Pedido</h3>
-        
-        <div class="input-group">
-          <label for="customer-name">Seu Nome:</label>
-          <input type="text" id="customer-name" placeholder="Ex: André Waldige">
-        </div>
-
-        <div class="input-group">
-          <label for="customer-address">Endereço de Entrega:</label>
-          <textarea id="customer-address" placeholder="Rua, número, bairro..."></textarea>
-        </div>
-
-        <div class="input-group">
-          <label for="payment-method">Forma de Pagamento:</label>
-          <select id="payment-method">
-            <option value="Pix">Pix</option>
-            <option value="Cartão">Cartão de Crédito/Débito</option>
-            <option value="Dinheiro">Dinheiro (na entrega)</option>
-          </select>
-        </div>
-      </div>
-
       <div class="cart-summary">
-        <div class="total-box">
-          <span>Total do Pedido:</span>
-          <h3 id="cart-total">R$ 0,00</h3>
-        </div>
-        <div class="cart-actions">
-          <button id="clear-cart-button" class="button button-danger">Limpar Tudo</button>
-          <button id="checkout-button" class="button button-success">Enviar para WhatsApp</button>
-        </div>
+        <h3>Total: <span id="cart-total">R$ 0,00</span></h3>
+        <button id="checkout-button" class="button button-success">Finalizar no WhatsApp</button>
       </div>
     </section>
 
     <section id="add-product-section" class="hidden">
-      <h2>Painel de Gerenciamento</h2>
-      <button id="show-add-form" class="button button-primary">Novo Produto</button>
-
-      <form id="add-product-form" class="hidden">
-        <h3 id="productFormTitle">Adicionar Produto</h3>
+      <form id="add-product-form">
+        <h3 id="productFormTitle">Gerenciar Produto</h3>
         <input type="hidden" id="product-id" />
-
-        <div class="input-group">
-          <label>Nome:</label>
-          <input type="text" id="name" required />
-        </div>
-
-        <div class="input-group">
-          <label>Descrição:</label>
-          <textarea id="description"></textarea>
-        </div>
-
-        <div class="form-row">
-          <div class="input-group">
-            <label>Preço:</label>
-            <input type="number" id="price" step="0.01" required />
-          </div>
-          <div class="input-group">
-            <label>Estoque:</label>
-            <input type="number" id="stock" value="0" />
-          </div>
-        </div>
-
-        <div class="input-group">
-          <label>URL da Imagem:</label>
-          <input type="text" id="imageUrl" placeholder="https://..." />
-        </div>
-
-        <div class="input-group">
-          <label>Categoria:</label>
-          <select id="category" required>
-            <option value="">Selecione...</option>
+        <input type="text" id="name" placeholder="Nome" required />
+        <textarea id="description" placeholder="Descrição"></textarea>
+        <input type="number" id="price" step="0.01" placeholder="Preço" required />
+        <input type="text" id="imageUrl" placeholder="URL da Imagem" />
+        <input type="number" id="stock" placeholder="Estoque" />
+        <select id="category" required>
+            <option value="">Categoria</option>
             <option value="Feminino">Feminino</option>
             <option value="Masculino">Masculino</option>
             <option value="Infantil">Infantil</option>
-            <option value="Beleza">Beleza</option>
-            <option value="Jeans">Jeans</option>
-            <option value="Calçados">Calçados</option>
-            <option value="Esportivo">Esportivo</option>
-            <option value="Moda Praia">Moda Praia</option>
-            <option value="Moda Íntima">Moda Íntima</option>
-          </select>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="button button-success">Salvar Produto</button>
-          <button type="button" id="cancel-form" class="button button-secondary">Cancelar</button>
-        </div>
+            </select>
+        <button type="submit" class="button button-success">Salvar</button>
       </form>
     </section>
   </main>
 
-  <footer>
-    <div class="footer-content">
-      <h3>Encontrar Produtos</h3>
-      <ul class="footer-categories">
-        <li>Feminino</li>
-        <li>Masculino</li>
-        <li>Infantil</li>
-        <li>Beleza</li>
-        <li>Jeans</li>
-        <li>Calçados</li>
-        <li>Esportivo</li>
-        <li>Moda Praia</li>
-        <li>Moda Íntima</li>
-      </ul>
+  <footer class="footer-simple">
+    <div class="footer-container">
       <p class="copyright">
-        &copy; <span id="current-year"></span> Catálogo Online por <strong>André Waldige</strong>.
+        &copy; <span id="current-year"></span> <strong>Catálogo Online</strong> 
+        <span class="separator">|</span> André Waldige
       </p>
     </div>
   </footer>
