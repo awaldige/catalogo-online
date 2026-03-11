@@ -227,6 +227,61 @@ header h1 { font-size: 2.2rem; margin-bottom: 10px; }
 .cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1999; }
 
 /* =========================================
+   MODAL DE PAGAMENTO (SIMULAÇÃO)
+   ========================================= */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3000;
+}
+
+.modal-content {
+    background: white;
+    width: 90%; max-width: 500px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    animation: modalFadeUp 0.3s ease-out;
+}
+
+@keyframes modalFadeUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header { padding: 20px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.modal-body { padding: 20px; }
+.close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; }
+
+.order-summary-box {
+    background: #f9f9f9; padding: 15px;
+    border-radius: 10px; margin-bottom: 20px;
+    border: 1px solid #eee;
+}
+
+.payment-options { display: flex; flex-direction: column; gap: 12px; margin: 15px 0 25px; }
+
+.pay-option { cursor: pointer; }
+.pay-option input { display: none; }
+
+.option-content {
+    display: flex; align-items: center; gap: 15px;
+    padding: 15px; border: 2px solid #eee;
+    border-radius: 10px; transition: all 0.3s ease;
+}
+
+.pay-option input:checked + .option-content {
+    border-color: var(--primary);
+    background: #f0f7ff;
+}
+
+.option-content i { font-size: 1.4rem; color: var(--primary); }
+
+.total-line { display: flex; justify-content: space-between; font-size: 1.25rem; margin-top: 10px; padding-top: 10px; }
+
+/* =========================================
    BOTÃO FLUTUANTE
    ========================================= */
 .floating-cart {
@@ -287,6 +342,7 @@ header h1 { font-size: 2.2rem; margin-bottom: 10px; }
 }
 
 .footer-container strong { color: var(--text-main); }
+.separator { color: #ccc; margin: 0 5px; }
 
 /* =========================================
    BOTÕES GERAIS
@@ -299,12 +355,16 @@ header h1 { font-size: 2.2rem; margin-bottom: 10px; }
     cursor: pointer;
     transition: 0.3s;
     font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .button-primary { background: var(--primary); color: white; }
 .button-success { background: var(--success); color: white; }
 .button-secondary { background: #6c757d; color: white; }
-.btn-block { width: 100%; }
+.btn-block { width: 100%; display: flex; }
 
 /* =========================================
    RESPONSIVIDADE
@@ -317,4 +377,5 @@ header h1 { font-size: 2.2rem; margin-bottom: 10px; }
 @media (max-width: 600px) {
     .products-container { grid-template-columns: 1fr; }
     .cart-sidebar { width: 100%; }
+    .modal-content { width: 95%; }
 }
