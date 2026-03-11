@@ -8,9 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnShowAdminPanel = document.getElementById("btnShowAdminPanel");
   const btnHideAdminPanel = document.getElementById("btnHideAdminPanel");
   const addProductSection = document.getElementById("add-product-section");
-  const showAddFormButton = document.getElementById("show-add-form");
   const addProductForm = document.getElementById("add-product-form");
-  const cancelFormButton = document.getElementById("cancel-form");
   const productIdInput = document.getElementById("product-id");
   const nameInput = document.getElementById("name");
   const descriptionInput = document.getElementById("description");
@@ -24,11 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const productsContainer = document.getElementById("products-container");
   const searchInput = document.getElementById("search-input");
   const searchButton = document.getElementById("search-button");
-  const clearSearchButton = document.getElementById("clear-search-button");
   const categoryFilterSelect = document.getElementById("category-filter");
-  const minPriceInput = document.getElementById("min-price-input");
-  const maxPriceInput = document.getElementById("max-price-input");
-  const minStockInput = document.getElementById("min-stock-input");
   const paginationControls = document.getElementById("pagination");
 
   // Carrinho
@@ -46,9 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentPage = 1;
   let currentSearchTerm = "";
   let currentCategoryFilter = "all";
-  let currentMinPrice = "";
-  let currentMaxPrice = "";
-  let currentMinStock = "";
 
   // --- 4. LÓGICA DO CARRINHO ---
 
@@ -77,14 +68,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const cartItemDiv = document.createElement("div");
         cartItemDiv.classList.add("cart-item");
         cartItemDiv.innerHTML = `
-          <img src="${item.imageUrl || 'https://via.placeholder.com/80'}" alt="${item.name}">
+          <img src="${item.imageUrl || 'https://via.placeholder.com/80'}" alt="${item.name}" loading="lazy">
           <div class="cart-item-details">
             <h4>${item.name}</h4>
             <p>R$ ${item.price.toFixed(2).replace(".", ",")}</p>
             <div class="quantity-controls">
               <button class="button-small quantity-minus" data-id="${item._id}">-</button>
               <span>${item.quantity}</span>
-              <button class="button-small quantity-plus" data-id="${item._id}" data-stock="${item.stock}">+</button>
+              <button class="button-small quantity-plus" data-id="${item._id}">+</button>
             </div>
           </div>
           <button class="button-small button-danger remove-from-cart" data-id="${item._id}">
@@ -100,114 +91,64 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateCartSummary() {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    
     if(cartItemCountSpan) cartItemCountSpan.textContent = totalItems;
     if(cartTotalSpan) cartTotalSpan.textContent = `R$ ${totalPrice.toFixed(2).replace(".", ",")}`;
-    
-    if(clearCartButton) clearCartButton.disabled = cart.length === 0;
-    if(checkoutButton) checkoutButton.disabled = cart.length === 0;
   }
 
-  // Ações de clique no carrinho
   cartItemsContainer.addEventListener("click", (e) => {
     const btn = e.target.closest("button");
     if (!btn) return;
     const id = btn.dataset.id;
+    const item = cart.find(i => i._id === id);
 
     if (btn.classList.contains("quantity-plus")) {
-        const item = cart.find(i => i._id === id);
-        if (item.quantity < item.stock) {
-            item.quantity++;
-            saveCartToLocalStorage();
-        } else {
-            alert("Limite de estoque atingido.");
-        }
+      if (item.quantity < item.stock) {
+        item.quantity++;
+        saveCartToLocalStorage();
+      } else { alert("Limite de estoque atingido."); }
     } else if (btn.classList.contains("quantity-minus")) {
-        const itemIndex = cart.findIndex(i => i._id === id);
-        if (cart[itemIndex].quantity > 1) {
-            cart[itemIndex].quantity--;
-        } else {
-            cart.splice(itemIndex, 1);
-        }
-        saveCartToLocalStorage();
+      if (item.quantity > 1) item.quantity--;
+      else cart = cart.filter(i => i._id !== id);
+      saveCartToLocalStorage();
     } else if (btn.classList.contains("remove-from-cart")) {
-        cart = cart.filter(i => i._id !== id);
-        saveCartToLocalStorage();
+      cart = cart.filter(i => i._id !== id);
+      saveCartToLocalStorage();
     }
   });
 
-  // BOTÃO ESVAZIAR
   if (clearCartButton) {
     clearCartButton.onclick = () => {
-      if (confirm("Deseja realmente limpar o carrinho?")) {
-        cart = [];
-        saveCartToLocalStorage();
-      }
+      if (confirm("Esvaziar carrinho?")) { cart = []; saveCartToLocalStorage(); }
     };
   }
 
-  // BOTÃO FINALIZAR (WHATSAPP COM DADOS COMPLETO)
   if (checkoutButton) {
     checkoutButton.onclick = (e) => {
       e.preventDefault();
-      
-      const nomeCliente = document.getElementById("customer-name").value.trim();
-      const enderecoCliente = document.getElementById("customer-address").value.trim();
+      const nome = document.getElementById("customer-name").value.trim();
+      const endereco = document.getElementById("customer-address").value.trim();
       const pagamento = document.getElementById("payment-method").value;
 
-      if (cart.length === 0) return;
-      
-      if (!nomeCliente || !enderecoCliente) {
-        alert("Por favor, preencha seu nome e endereço para entrega.");
-        return;
-      }
+      if (!nome || !endereco) return alert("Preencha nome e endereço!");
 
-      let mensagem = `*📦 NOVO PEDIDO - CATÁLOGO ANDRÉ*\n`;
-      mensagem += `------------------------------------------\n`;
-      mensagem += `👤 *CLIENTE:* ${nomeCliente}\n`;
-      mensagem += `📍 *ENTREGA:* ${enderecoCliente}\n`;
-      mensagem += `💳 *PAGAMENTO:* ${pagamento}\n`;
-      mensagem += `------------------------------------------\n\n`;
-      
-      cart.forEach(item => {
-        const sub = (item.price * item.quantity).toFixed(2).replace(".", ",");
-        mensagem += `✅ *${item.name}*\n   Qtd: ${item.quantity} | Subtotal: R$ ${sub}\n\n`;
-      });
-      
-      const totalGeral = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      
-      mensagem += `------------------------------------------\n`;
-      mensagem += `💰 *TOTAL DO PEDIDO: R$ ${totalGeral.toFixed(2).replace(".", ",")}*\n`;
-      mensagem += `------------------------------------------\n`;
-      mensagem += `_Pedido gerado via Catálogo Online._`;
+      let msg = `*📦 NOVO PEDIDO*\n👤 *CLIENTE:* ${nome}\n📍 *ENTREGA:* ${endereco}\n💳 *PAGAMENTO:* ${pagamento}\n\n`;
+      cart.forEach(i => msg += `✅ *${i.name}* (${i.quantity}x) - R$ ${(i.price * i.quantity).toFixed(2)}\n`);
+      msg += `\n💰 *TOTAL: ${cartTotalSpan.textContent}*`;
 
-      const encodedMsg = encodeURIComponent(mensagem);
-      const urlZap = `https://api.whatsapp.com/send?phone=${SEU_TELEFONE}&text=${encodedMsg}`;
-
-      // Resetar o site após o envio
-      cart = [];
-      saveCartToLocalStorage();
-      document.getElementById("customer-name").value = "";
-      document.getElementById("customer-address").value = "";
-
-      // Abrir WhatsApp
-      window.open(urlZap, '_blank');
-      
-      alert("Pedido enviado com sucesso! Finalize o envio no WhatsApp.");
+      window.open(`https://api.whatsapp.com/send?phone=${SEU_TELEFONE}&text=${encodeURIComponent(msg)}`, '_blank');
+      cart = []; saveCartToLocalStorage();
     };
   }
 
-  // --- 5. BUSCA DE PRODUTOS ---
+  // --- 5. BUSCA E RENDERIZAÇÃO DE PRODUTOS (ALTA PERFORMANCE) ---
 
   async function fetchProducts() {
     try {
-      productsContainer.innerHTML = '<p class="info-message">Carregando catálogo...</p>';
+      productsContainer.innerHTML = '<div class="info-message">Buscando produtos...</div>';
+      
       let url = `${API_BASE_URL}/products?page=${currentPage}&limit=${productsPerPage}`;
       if (currentSearchTerm) url += `&search=${currentSearchTerm}`;
       if (currentCategoryFilter !== "all") url += `&category=${currentCategoryFilter}`;
-      if (currentMinPrice) url += `&minPrice=${currentMinPrice}`;
-      if (currentMaxPrice) url += `&maxPrice=${currentMaxPrice}`;
-      if (currentMinStock) url += `&minStock=${currentMinStock}`;
 
       const response = await fetch(url);
       const data = await response.json();
@@ -219,9 +160,17 @@ document.addEventListener("DOMContentLoaded", () => {
         data.products.forEach((product) => {
           const productCard = document.createElement("div");
           productCard.classList.add("product-card");
+          
+          // Implementação de Aspect-Ratio e Performance Visual
           productCard.innerHTML = `
-            <div class="product-image-container">
-                <img src="${product.imageUrl || 'https://via.placeholder.com/280x200'}" loading="lazy" decoding="async">
+            <div class="product-image-container" style="background: #f0f0f0; aspect-ratio: 1/1; position: relative; overflow: hidden;">
+                <img src="${product.imageUrl || 'https://via.placeholder.com/280'}" 
+                     loading="lazy" 
+                     decoding="async"
+                     alt="${product.name}"
+                     style="width:100%; height:100%; object-fit:cover; opacity: 0; transition: opacity 0.4s;"
+                     onload="this.style.opacity='1'"
+                     onerror="this.src='https://via.placeholder.com/280?text=Sem+Imagem'">
             </div>
             <div class="product-card-content">
                 <h3>${product.name}</h3>
@@ -232,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="button-small button-danger delete-btn" data-id="${product._id}">Excluir</button>
                 </div>
                 <button class="button button-primary add-to-cart-button" data-product-id="${product._id}">
-                    <i class="fa fa-cart-plus"></i> Adicionar ao Carrinho
+                    <i class="fa fa-cart-plus"></i> Adicionar
                 </button>
             </div>
           `;
@@ -242,34 +191,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       renderPagination(Math.ceil(data.totalCount / productsPerPage));
     } catch (err) {
-      productsContainer.innerHTML = '<p class="error-message">Erro ao carregar catálogo.</p>';
+      productsContainer.innerHTML = '<p class="error-message">Erro ao conectar com o servidor.</p>';
     }
   }
-
-  productsContainer.addEventListener("click", async (e) => {
-    const target = e.target.closest(".add-to-cart-button");
-    if (target) {
-        const id = target.dataset.productId;
-        try {
-            const res = await fetch(`${API_BASE_URL}/products/${id}`);
-            const product = await res.json();
-            if (product.stock <= 0) {
-                alert("Produto sem estoque.");
-                return;
-            }
-            const existing = cart.find(i => i._id === id);
-            if (existing) {
-                if (existing.quantity < product.stock) existing.quantity++;
-                else alert("Máximo em estoque atingido.");
-            } else {
-                cart.push({...product, quantity: 1});
-            }
-            saveCartToLocalStorage();
-        } catch (err) { alert("Erro ao adicionar produto."); }
-    }
-    if (e.target.classList.contains("edit-btn")) editProduct(e.target.dataset.id);
-    if (e.target.classList.contains("delete-btn")) deleteProduct(e.target.dataset.id);
-  });
 
   // --- 6. ADMIN E AUXILIARES ---
 
@@ -294,25 +218,38 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleAdminButtons();
   };
 
+  productsContainer.addEventListener("click", async (e) => {
+    const addBtn = e.target.closest(".add-to-cart-button");
+    if (addBtn) {
+      const id = addBtn.dataset.productId;
+      const res = await fetch(`${API_BASE_URL}/products/${id}`);
+      const p = await res.json();
+      if (p.stock <= 0) return alert("Sem estoque!");
+      const exist = cart.find(i => i._id === id);
+      if (exist) exist.quantity < p.stock ? exist.quantity++ : alert("Limite atingido");
+      else cart.push({...p, quantity: 1});
+      saveCartToLocalStorage();
+    }
+    if (e.target.classList.contains("edit-btn")) editProduct(e.target.dataset.id);
+    if (e.target.classList.contains("delete-btn")) deleteProduct(e.target.dataset.id);
+  });
+
   async function editProduct(id) {
     const res = await fetch(`${API_BASE_URL}/products/${id}`);
     const p = await res.json();
     addProductForm.classList.remove("hidden");
     productIdInput.value = p._id;
     nameInput.value = p.name;
-    descriptionInput.value = p.description;
     priceInput.value = p.price;
     imageUrlInput.value = p.imageUrl;
-    stockInput.value = p.stock;
-    categoryInput.value = p.category;
     productFormTitle.textContent = "Editar Produto";
-    window.scrollTo({ top: addProductSection.offsetTop, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async function deleteProduct(id) {
-    if (confirm("Excluir permanentemente?")) {
-        await fetch(`${API_BASE_URL}/products/${id}`, { method: 'DELETE' });
-        fetchProducts();
+    if (confirm("Excluir?")) {
+      await fetch(`${API_BASE_URL}/products/${id}`, { method: 'DELETE' });
+      fetchProducts();
     }
   }
 
@@ -327,12 +264,11 @@ document.addEventListener("DOMContentLoaded", () => {
     paginationControls.innerHTML = "";
     if (totalPages <= 1) return;
     for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.innerText = i;
-        btn.classList.add("pagination-button");
-        if (i === currentPage) btn.classList.add("active");
-        btn.onclick = () => { currentPage = i; fetchProducts(); window.scrollTo(0,0); };
-        paginationControls.appendChild(btn);
+      const btn = document.createElement("button");
+      btn.innerText = i;
+      btn.className = `pagination-button ${i === currentPage ? 'active' : ''}`;
+      btn.onclick = () => { currentPage = i; fetchProducts(); window.scrollTo(0,0); };
+      paginationControls.appendChild(btn);
     }
   }
 
