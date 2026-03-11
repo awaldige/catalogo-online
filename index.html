@@ -57,8 +57,7 @@
         </section>
 
         <section id="product-list">
-            <div class="products-container" id="products-container">
-                </div>
+            <div class="products-container" id="products-container"></div>
             <div id="pagination" class="pagination"></div>
         </section>
 
@@ -78,8 +77,57 @@
                     <span id="cart-total">R$ 0,00</span>
                 </div>
                 <button id="checkout-button" class="button button-success btn-block">
-                    <i class="fab fa-whatsapp"></i> Finalizar no WhatsApp
+                    <i class="fa fa-chevron-right"></i> Finalizar Pedido
                 </button>
+            </div>
+        </div>
+
+        <div id="payment-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Finalizar Compra</h3>
+                    <button id="close-payment" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="order-summary-box">
+                        <h4>Resumo do Pedido</h4>
+                        <div id="payment-items-list"></div>
+                        <hr>
+                        <div class="total-line">
+                            <strong>Total:</strong> 
+                            <span id="payment-total-value">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <h4>Escolha a forma de pagamento:</h4>
+                    <div class="payment-options">
+                        <label class="pay-option">
+                            <input type="radio" name="pay-method" value="Pix" checked>
+                            <div class="option-content">
+                                <i class="fa-brands fa-pix"></i>
+                                <span>Pix <strong>(5% OFF)</strong></span>
+                            </div>
+                        </label>
+                        <label class="pay-option">
+                            <input type="radio" name="pay-method" value="Cartão de Crédito">
+                            <div class="option-content">
+                                <i class="fa fa-credit-card"></i>
+                                <span>Cartão de Crédito</span>
+                            </div>
+                        </label>
+                        <label class="pay-option">
+                            <input type="radio" name="pay-method" value="Boleto">
+                            <div class="option-content">
+                                <i class="fa fa-barcode"></i>
+                                <span>Boleto Bancário</span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <button id="confirm-purchase" class="button button-success btn-block">
+                        <i class="fab fa-whatsapp"></i> Confirmar e Enviar Pedido
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -99,7 +147,7 @@
                     <option value="Feminino">Feminino</option>
                     <option value="Masculino">Masculino</option>
                     <option value="Infantil">Infantil</option>
-                    </select>
+                </select>
                 <button type="submit" class="button button-success">Salvar Produto</button>
             </form>
         </section>
@@ -107,7 +155,7 @@
 
     <footer class="footer-simple">
         <div class="footer-container">
-            <p class="copyright">
+            <p>
                 &copy; <span id="current-year"></span> <strong>André Waldige</strong> 
                 <span class="separator">|</span> Catálogo Profissional
             </p>
