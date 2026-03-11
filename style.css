@@ -10,6 +10,7 @@
     --bg-card: #ffffff;
     --text-main: #2d3436;
     --radius: 10px;
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,6 +36,7 @@ header {
 #admin-access-section {
     display: flex;
     justify-content: center;
+    gap: 10px;
     margin: 20px 0;
 }
 
@@ -46,6 +48,9 @@ header {
     cursor: pointer;
     transition: 0.3s;
     font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .button-primary { background: var(--primary); color: white; }
@@ -54,7 +59,7 @@ header {
 .button-danger { background: var(--danger); color: white; }
 
 /* =========================================
-   PAINEL ADMIN (CORREÇÃO DE VISIBILIDADE)
+   PAINEL ADMIN (ESTILIZADO)
    ========================================= */
 #add-product-section {
     background: white;
@@ -62,9 +67,11 @@ header {
     border-radius: var(--radius);
     margin: 20px auto;
     max-width: 600px;
-    border: 2px solid var(--primary);
+    border: 2px dashed var(--primary); /* Estilo tracejado para destacar área de cadastro */
     box-shadow: var(--shadow-md);
 }
+
+#add-product-form h3 { margin-bottom: 15px; color: var(--primary); }
 
 #add-product-form input, 
 #add-product-form textarea, 
@@ -75,39 +82,42 @@ header {
     border: 1px solid #ddd;
     border-radius: 6px;
     display: block;
+    font-family: inherit;
 }
 
 /* =========================================
-   GRID DE PRODUTOS (3 POR PÁGINA)
+   GRID DE PRODUTOS (3 POR FILEIRA)
    ========================================= */
 .products-container {
     display: grid;
-    /* Força exatamente 3 colunas no desktop */
     grid-template-columns: repeat(3, 1fr); 
-    gap: 20px;
+    gap: 25px;
     max-width: 1100px;
-    margin: 0 auto;
+    margin: 40px auto;
+    padding: 0 15px;
 }
 
 .product-card {
     background: white;
     border-radius: var(--radius);
     overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     border: 1px solid #eee;
     text-align: center;
     display: flex;
     flex-direction: column;
+    height: 100%; /* Mantém todos os cards do mesmo tamanho na fileira */
 }
 
-/* IMAGENS MENORES */
+/* IMAGENS PADRONIZADAS */
 .product-image-container {
     width: 100%;
-    height: 160px; /* Reduzido de 200px para ser mais compacto */
-    background-color: #f9f9f9;
+    height: 180px; /* Altura ideal para 3 por fileira */
+    background-color: #fcfcfc;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-bottom: 1px solid #f1f1f1;
 }
 
 .product-card img {
@@ -115,22 +125,48 @@ header {
     max-height: 100%;
     object-fit: contain;
     padding: 10px;
-    opacity: 0;
     transition: opacity 0.4s;
 }
 
-.product-card-content { padding: 15px; }
-.product-card h3 { font-size: 0.95rem; margin-bottom: 5px; }
+.product-card-content {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-card h3 { 
+    font-size: 0.95rem; 
+    margin-bottom: 8px; 
+    color: #333;
+    min-height: 40px; /* Evita desalinhamento com nomes curtos/longos */
+}
+
+.product-card .price { 
+    font-size: 1.2rem; 
+    color: var(--success); 
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+/* Botões de Ação do Admin dentro do Card */
+.product-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    margin-bottom: 10px;
+}
 
 /* =========================================
-   PAGINAÇÃO (MODERNA E CLARA)
+   PAGINAÇÃO (MODERNA)
    ========================================= */
 #pagination {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
-    margin: 40px 0;
+    gap: 10px;
+    margin: 50px 0;
 }
 
 .pagination-button {
@@ -142,13 +178,7 @@ header {
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-.pagination-button:hover:not(:disabled) {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
+    transition: 0.3s;
 }
 
 .pagination-button.active {
@@ -158,14 +188,21 @@ header {
     box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
 }
 
+.pagination-button:hover:not(.active) {
+    background: #f0f7ff;
+}
+
 /* =========================================
    RESPONSIVIDADE
    ========================================= */
-@media (max-width: 900px) {
-    .products-container { grid-template-columns: 1fr 1fr; } /* 2 colunas em tablets */
+@media (max-width: 992px) {
+    .products-container { grid-template-columns: repeat(2, 1fr); } /* 2 colunas */
 }
 
 @media (max-width: 600px) {
-    .products-container { grid-template-columns: 1fr; } /* 1 coluna no celular para não esmagar */
-    .product-image-container { height: 200px; }
+    .products-container { 
+        grid-template-columns: 1fr; /* 1 coluna */
+        max-width: 350px; 
+    }
+    .product-image-container { height: 220px; }
 }
