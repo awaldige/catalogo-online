@@ -16,12 +16,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- 3. ESTADO DA APLICAÇÃO ---
   let cart = [];
-  const productsPerPage = 3; // ATUALIZADO PARA 3
+  // AJUSTE: 9 produtos por página = 3 fileiras completas de 3 produtos
+  const productsPerPage = 9; 
   let currentPage = 1;
   let currentSearchTerm = "";
   let currentCategoryFilter = "all";
 
-  // --- 4. LÓGICA DO ADMIN (CORRIGIDA) ---
+  // --- 4. LÓGICA DO ADMIN (SINCRONIZADA COM CSS) ---
   
   function toggleAdminMode(show) {
     if (show) {
@@ -33,25 +34,26 @@ document.addEventListener("DOMContentLoaded", () => {
       btnShowAdminPanel.classList.remove("hidden");
       btnHideAdminPanel.classList.add("hidden");
     }
-    renderAdminActions(); // Atualiza botões de editar/excluir nos cards
+    renderAdminActions(); // Garante que os botões nos cards apareçam/sumam
   }
 
   btnShowAdminPanel.onclick = () => toggleAdminMode(true);
   btnHideAdminPanel.onclick = () => toggleAdminMode(false);
 
   function renderAdminActions() {
-    const isAdmin = !addProductSection.classList.contains("hidden");
+    // Verifica se o painel admin está visível para decidir se mostra editar/excluir
+    const isAdminActive = !addProductSection.classList.contains("hidden");
     document.querySelectorAll(".product-actions").forEach(div => {
-      if (isAdmin) div.classList.remove("hidden");
+      if (isAdminActive) div.classList.remove("hidden");
       else div.classList.add("hidden");
     });
   }
 
-  // --- 5. BUSCA E RENDERIZAÇÃO (IMAGENS MENORES) ---
+  // --- 5. BUSCA E RENDERIZAÇÃO (3 POR FILEIRA) ---
 
   async function fetchProducts() {
     try {
-      productsContainer.innerHTML = '<div class="info-message">Carregando vitrine...</div>';
+      productsContainer.innerHTML = '<div class="info-message">Atualizando vitrine...</div>';
       
       let url = `${API_BASE_URL}/products?page=${currentPage}&limit=${productsPerPage}`;
       if (currentSearchTerm) url += `&search=${currentSearchTerm}`;
@@ -73,15 +75,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 <img src="${product.imageUrl || 'https://via.placeholder.com/200?text=Sem+Imagem'}" 
                      loading="lazy" 
                      alt="${product.name}"
+                     style="opacity: 0; transition: opacity 0.4s;"
                      onload="this.style.opacity='1'">
             </div>
             <div class="product-card-content">
                 <h3>${product.name}</h3>
                 <p class="price">R$ ${product.price.toFixed(2).replace(".", ",")}</p>
-                <div class="product-actions hidden" id="actions-${product._id}">
-                    <button class="button-small button-secondary edit-btn" data-id="${product._id}">Editar</button>
-                    <button class="button-small button-danger delete-btn" data-id="${product._id}">Excluir</button>
+                
+                <div class="product-actions hidden">
+                    <button class="button-small button-secondary edit-btn" data-id="${product._id}">
+                       <i class="fa fa-edit"></i> Editar
+                    </button>
+                    <button class="button-small button-danger delete-btn" data-id="${product._id}">
+                       <i class="fa fa-trash"></i> Excluir
+                    </button>
                 </div>
+
                 <button class="button button-primary add-to-cart-button" data-product-id="${product._id}">
                     <i class="fa fa-cart-plus"></i> Adicionar
                 </button>
@@ -89,15 +98,20 @@ document.addEventListener("DOMContentLoaded", () => {
           `;
           productsContainer.appendChild(productCard);
         });
+        
+        // Aplica a visibilidade correta dos botões de ação após carregar os cards
         renderAdminActions();
       }
+      
+      // Renderiza os botões das 5 páginas (ou quantas existirem)
       renderPagination(Math.ceil(data.totalCount / productsPerPage));
+      
     } catch (err) {
-      productsContainer.innerHTML = '<p class="error-message">Erro ao conectar com o servidor.</p>';
+      productsContainer.innerHTML = '<p class="error-message">Erro ao carregar produtos. Tente novamente.</p>';
     }
   }
 
-  // --- 6. PAGINAÇÃO (ESTILO MELHORADO) ---
+  // --- 6. PAGINAÇÃO ---
 
   function renderPagination(totalPages) {
     paginationControls.innerHTML = "";
@@ -116,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- 7. CARRINHO (SIMPLIFICADO) ---
+  // --- 7. CARRINHO ---
 
   function saveCartToLocalStorage() {
     localStorage.setItem("cart", JSON.stringify(cart));
@@ -129,6 +143,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const cartItemCountSpan = document.getElementById("cart-item-count");
     const cartTotalSpan = document.getElementById("cart-total");
 
+    if (!cartItemsContainer) return;
+
     cartItemsContainer.innerHTML = "";
     
     if (cart.length === 0) {
@@ -138,14 +154,13 @@ document.addEventListener("DOMContentLoaded", () => {
       cart.forEach((item) => {
         const div = document.createElement("div");
         div.className = "cart-item";
+        div.style = "display:flex; align-items:center; gap:10px; margin-bottom:10px; background:white; padding:10px; border-radius:8px;";
         div.innerHTML = `
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">
-            <img src="${item.imageUrl}" style="width:50px; height:50px; object-fit:cover; border-radius:5px;">
+            <img src="${item.imageUrl}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;">
             <div style="flex-grow:1">
-              <p style="font-weight:bold; font-size:14px;">${item.name}</p>
-              <p style="font-size:12px;">${item.quantity}x R$ ${item.price.toFixed(2)}</p>
+              <p style="font-weight:600; font-size:13px; margin:0;">${item.name}</p>
+              <p style="font-size:12px; margin:0;">${item.quantity}x R$ ${item.price.toFixed(2)}</p>
             </div>
-          </div>
         `;
         cartItemsContainer.appendChild(div);
       });
@@ -153,23 +168,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    
     if(cartItemCountSpan) cartItemCountSpan.textContent = totalItems;
     if(cartTotalSpan) cartTotalSpan.textContent = `R$ ${totalPrice.toFixed(2).replace(".", ",")}`;
   }
 
-  // --- 8. EVENTOS DE CLIQUE ---
+  // --- 8. EVENTOS ---
 
   productsContainer.addEventListener("click", async (e) => {
+    // Lógica Adicionar ao Carrinho
     const addBtn = e.target.closest(".add-to-cart-button");
     if (addBtn) {
       const id = addBtn.dataset.productId;
-      const res = await fetch(`${API_BASE_URL}/products/${id}`);
-      const p = await res.json();
-      const exist = cart.find(i => i._id === id);
-      if (exist) exist.quantity++;
-      else cart.push({...p, quantity: 1});
-      saveCartToLocalStorage();
-      alert("Adicionado ao carrinho!");
+      try {
+        const res = await fetch(`${API_BASE_URL}/products/${id}`);
+        const p = await res.json();
+        const exist = cart.find(i => i._id === id);
+        if (exist) exist.quantity++;
+        else cart.push({...p, quantity: 1});
+        saveCartToLocalStorage();
+      } catch (err) {
+        console.error("Erro ao adicionar produto");
+      }
+    }
+    
+    // Lógica Editar/Excluir (Modo Admin)
+    if (e.target.closest(".edit-btn")) {
+        const id = e.target.closest(".edit-btn").dataset.id;
+        // Chame sua função de editar aqui
+    }
+    
+    if (e.target.closest(".delete-btn")) {
+        const id = e.target.closest(".delete-btn").dataset.id;
+        if(confirm("Deseja realmente excluir este produto?")) {
+            // Lógica de delete aqui
+        }
     }
   });
 
@@ -180,10 +213,12 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchProducts();
   };
 
-  // Inicialização
+  // --- INICIALIZAÇÃO ---
   const storedCart = localStorage.getItem("cart");
   if (storedCart) cart = JSON.parse(storedCart);
   renderCart();
   fetchProducts();
-  document.getElementById("current-year").textContent = new Date().getFullYear();
+  
+  const yearSpan = document.getElementById("current-year");
+  if(yearSpan) yearSpan.textContent = new Date().getFullYear();
 });
