@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchButton = document.getElementById("search-button");
   const categoryFilterSelect = document.getElementById("category-filter");
   
-  // Seletores do Carrinho Lateral
   const cartSidebar = document.getElementById("cart-sidebar");
   const cartOverlay = document.getElementById("cart-overlay");
   const closeCartBtn = document.getElementById("close-cart");
@@ -22,6 +21,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const cartTotalSpan = document.getElementById("cart-total");
   const cartCountBadge = document.getElementById("cart-count-badge");
   const checkoutButton = document.getElementById("checkout-button");
+
+  // SELETORES DO MODAL DE PAGAMENTO
+  const paymentModal = document.getElementById("payment-modal");
+  const closePaymentBtn = document.getElementById("close-payment");
+  const confirmPurchaseBtn = document.getElementById("confirm-purchase");
+  const paymentItemsList = document.getElementById("payment-items-list");
+  const paymentTotalValue = document.getElementById("payment-total-value");
+  const paymentOptions = document.getElementsByName("pay-method");
 
   // --- 3. ESTADO DA APLICAÇÃO ---
   let cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -104,21 +111,67 @@ document.addEventListener("DOMContentLoaded", () => {
     cartCountBadge.textContent = count;
   }
 
-  // Finalizar Pedido WhatsApp
+  // --- 5. LÓGICA DO MODAL DE PAGAMENTO ---
+
+  function calculateFinalTotal() {
+    let total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const selectedMethod = document.querySelector('input[name="pay-method"]:checked').value;
+
+    // Simulação de desconto para Pix (5%)
+    if (selectedMethod === "Pix") {
+      total = total * 0.95;
+    }
+
+    paymentTotalValue.textContent = `R$ ${total.toFixed(2).replace(".", ",")}`;
+    return total;
+  }
+
+  // Monitorar troca de opção de pagamento para atualizar total em tempo real
+  paymentOptions.forEach(opt => {
+    opt.addEventListener("change", calculateFinalTotal);
+  });
+
   checkoutButton.onclick = () => {
     if (cart.length === 0) return alert("Adicione produtos primeiro!");
     
-    let msg = `*🛍️ NOVO PEDIDO - CATÁLOGO*\n--------------------------\n`;
-    cart.forEach(i => {
-      msg += `✅ *${i.name}*\n   ${i.quantity}x R$ ${i.price.toFixed(2)} = R$ ${(i.price * i.quantity).toFixed(2)}\n`;
-    });
-    msg += `--------------------------\n💰 *TOTAL: ${cartTotalSpan.textContent}*`;
+    // Abrir modal e preencher resumo
+    paymentItemsList.innerHTML = cart.map(i => `
+      <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:5px;">
+        <span>${i.quantity}x ${i.name}</span>
+        <span>R$ ${(i.price * i.quantity).toFixed(2).replace(".", ",")}</span>
+      </div>
+    `).join('');
     
-    const url = `https://wa.me/${SEU_TELEFONE}?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank");
+    calculateFinalTotal();
+    paymentModal.classList.remove("hidden");
+    toggleCart(false); // Fecha a sidebar para focar no modal
   };
 
-  // --- 5. BUSCA E RENDERIZAÇÃO ---
+  closePaymentBtn.onclick = () => paymentModal.classList.add("hidden");
+
+  confirmPurchaseBtn.onclick = () => {
+    const method = document.querySelector('input[name="pay-method"]:checked').value;
+    const finalPrice = paymentTotalValue.textContent;
+
+    let msg = `*🛍️ NOVO PEDIDO - ANDRÉ WALDIGE*\n`;
+    msg += `--------------------------------\n`;
+    cart.forEach(i => {
+      msg += `✅ *${i.name}* (${i.quantity}x)\n`;
+    });
+    msg += `--------------------------------\n`;
+    msg += `💳 *Forma de Pagamento:* ${method}\n`;
+    msg += `💰 *VALOR TOTAL: ${finalPrice}*\n`;
+    msg += `--------------------------------\n`;
+    msg += `_Olá, gostaria de prosseguir com este pedido!_`;
+
+    const url = `https://wa.me/${SEU_TELEFONE}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+    
+    // Opcional: Limpar carrinho após sucesso
+    // cart = []; saveCart(); paymentModal.classList.add("hidden");
+  };
+
+  // --- 6. BUSCA E RENDERIZAÇÃO ---
 
   async function fetchProducts() {
     try {
@@ -164,7 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- 6. EVENTOS E ADMIN ---
+  // --- 7. EVENTOS ---
 
   productsContainer.onclick = async (e) => {
     const addBtn = e.target.closest(".add-to-cart-button");
@@ -178,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
       else cart.push({...p, quantity: 1});
       
       saveCart();
-      toggleCart(true); // Abre o carrinho automaticamente ao adicionar
+      toggleCart(true); 
     }
   };
 
