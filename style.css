@@ -2,13 +2,13 @@
    VARIÁVEIS E REGRAS GLOBAIS
    ========================================= */
 :root {
-    --primary: #007aff; /* Azul vibrante estilo iOS */
+    --primary: #007aff;
     --primary-dark: #0056b3;
-    --success: #28a745;
-    --danger: #dc3545;
-    --bg-body: #f8fafc; /* Cinza levemente mais azulado e limpo */
+    --success: #25d366; /* Verde WhatsApp */
+    --danger: #ef4444;
+    --bg-body: #f8fafc;
     --bg-card: #ffffff;
-    --text-main: #1e293b; /* Cor de texto mais moderna (Slate) */
+    --text-main: #1e293b;
     --text-muted: #64748b;
     --radius-lg: 20px;
     --radius-md: 12px;
@@ -23,9 +23,7 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
-    height: 100%;
-}
+html, body { height: 100%; }
 
 body {
     font-family: 'Poppins', sans-serif;
@@ -39,17 +37,15 @@ body {
 
 .hidden { display: none !important; }
 
-main {
-    flex: 1 0 auto;
-}
+main { flex: 1 0 auto; }
 
 /* =========================================
-   HEADER (GRADIENTE MODERNO)
+   HEADER
    ========================================= */
 header {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); /* Escuro elegante */
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     color: white;
-    padding: 60px 20px;
+    padding: 60px 20px 80px;
     text-align: center;
     flex-shrink: 0;
 }
@@ -62,13 +58,13 @@ header h1 {
 }
 
 /* =========================================
-   BARRA DE BUSCA E FILTROS (GLASSMORPHISM)
+   BARRA DE BUSCA E FILTROS (FIX MOBILE)
    ========================================= */
 .search-container {
     display: flex;
     gap: 15px;
     max-width: 1100px;
-    margin: -35px auto 40px; /* Sobrepõe levemente o header */
+    margin: -40px auto 40px;
     padding: 0 20px;
     position: relative;
     z-index: 10;
@@ -86,12 +82,6 @@ header h1 {
     transition: all 0.3s ease;
 }
 
-.search-box:focus-within {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-hover);
-    border-color: var(--primary);
-}
-
 .search-box i {
     position: absolute;
     left: 20px;
@@ -105,11 +95,16 @@ header h1 {
     border-radius: 50px;
     outline: none;
     font-size: 1rem;
-    color: var(--text-main);
 }
 
-.filter-box select {
-    padding: 10px 25px;
+.filter-box {
+    flex: 1;
+    display: flex;
+    gap: 10px;
+}
+
+.filter-box select, .filter-box .button {
+    padding: 10px 20px;
     border-radius: 50px;
     border: 1px solid rgba(0,0,0,0.05);
     background: white;
@@ -118,16 +113,20 @@ header h1 {
     font-family: inherit;
     font-weight: 500;
     color: var(--text-main);
-    width: 100%;
     outline: none;
+    transition: 0.3s;
+}
+
+.filter-box select {
+    flex: 1;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 20px center;
+    background-position: right 18px center;
 }
 
 /* =========================================
-   GRID E CARDS (ESTILO PREMIUM)
+   GRID E CARDS
    ========================================= */
 .products-container {
     display: grid;
@@ -147,12 +146,11 @@ header h1 {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
-    height: 100%;
-    padding: 12px; /* Interno para criar moldura */
+    padding: 12px;
 }
 
 .product-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
     box-shadow: var(--shadow-hover);
 }
 
@@ -160,117 +158,97 @@ header h1 {
     width: 100%;
     aspect-ratio: 1 / 1; 
     background-color: #f1f5f9;
-    border-radius: 14px; /* Imagem arredondada */
+    border-radius: 14px;
     overflow: hidden;
-    position: relative;
 }
 
 .product-card img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.6s ease;
+    transition: 0.5s;
 }
 
-.product-card:hover img {
-    transform: scale(1.08);
-}
+.product-card-content { padding: 15px 10px; flex-grow: 1; display: flex; flex-direction: column; }
+.product-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; min-height: 44px; }
+.product-card .price { font-weight: 700; font-size: 1.3rem; margin-bottom: 15px; display: block; }
 
-.product-card-content {
-    padding: 20px 10px 10px;
-    flex-grow: 1;
+/* =========================================
+   CARRINHO SIDEBAR (ESTILO PREMIUM)
+   ========================================= */
+.cart-sidebar {
+    position: fixed;
+    right: 0; top: 0;
+    width: 400px; max-width: 100%;
+    height: 100%;
+    background: #f8fafc;
+    box-shadow: -10px 0 40px rgba(0,0,0,0.15);
+    z-index: 3000;
     display: flex;
     flex-direction: column;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.product-card h3 { 
-    font-size: 1.1rem; 
-    font-weight: 600;
-    margin-bottom: 8px; 
-    color: var(--text-main);
-    min-height: 44px;
-}
+.cart-sidebar.hidden { transform: translateX(100%); display: flex !important; }
 
-.product-card .price { 
-    color: var(--text-main);
-    font-weight: 700; 
-    font-size: 1.4rem; 
-    margin-bottom: 20px; 
-    display: block;
-}
-
-/* =========================================
-   BOTÕES (DESIGN DE ALTO NÍVEL)
-   ========================================= */
-.button {
-    padding: 14px 24px;
-    border: none;
-    border-radius: 50px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 0.95rem;
-}
-
-.button-primary { 
-    background: var(--primary); 
+.cart-header { 
+    padding: 25px; 
+    background: #0f172a; 
     color: white; 
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
 }
 
-.button-primary:hover {
-    background: var(--primary-dark);
-    box-shadow: 0 6px 15px rgba(0, 122, 255, 0.4);
+.cart-body { flex: 1; overflow-y: auto; padding: 20px; }
+
+.cart-item { 
+    display: flex; gap: 12px; padding: 12px; 
+    background: white; border-radius: var(--radius-md); 
+    margin-bottom: 12px; align-items: center; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
-/* Botão de Adicionar no Card */
-.add-to-cart-button {
-    background: #f1f5f9;
-    color: var(--primary);
-    width: 100%;
-    margin-top: auto;
-}
+.cart-item img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
 
-.add-to-cart-button:hover {
-    background: var(--primary);
-    color: white;
-}
-
-/* =========================================
-   PAGINAÇÃO (CLEAN)
-   ========================================= */
-#pagination {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin: 50px auto 80px;
-    padding: 0 20px;
-}
-
-.pagination-button {
-    min-width: 46px;
-    height: 46px;
-    border: none;
+.cart-footer {
+    padding: 25px;
     background: white;
-    color: var(--text-muted);
-    border-radius: 50%; /* Botões circulares */
-    font-weight: 600;
-    box-shadow: var(--shadow-soft);
-    transition: all 0.3s ease;
+    border-top: 1px solid #e2e8f0;
 }
 
-.pagination-button.active {
+.total-container {
+    display: flex; justify-content: space-between;
+    margin-bottom: 20px; font-weight: 700; font-size: 1.2rem;
+}
+
+.checkout-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--success);
+    color: white;
+    border-radius: 50px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 10px 20px rgba(37, 211, 102, 0.2);
+}
+
+.floating-cart {
+    position: fixed;
+    bottom: 30px; right: 30px;
+    width: 65px; height: 65px;
     background: var(--primary);
     color: white;
-    transform: scale(1.1);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 25px rgba(0, 122, 255, 0.3);
+    cursor: pointer; z-index: 999;
 }
 
 /* =========================================
-   RODAPÉ (DARK ELEGANTE)
+   RODAPÉ
    ========================================= */
 footer {
     flex-shrink: 0;
@@ -278,57 +256,46 @@ footer {
     padding: 40px 20px;
     text-align: center;
     color: #94a3b8;
-    width: 100%;
-}
-
-footer p {
-    font-size: 0.9rem;
-    font-weight: 400;
 }
 
 /* =========================================
-   CARRINHO SIDEBAR (PREMIUM)
-   ========================================= */
-.cart-sidebar {
-    position: fixed;
-    right: 0; top: 0;
-    width: 400px; max-width: 100%;
-    height: 100%;
-    background: white;
-    box-shadow: -10px 0 30px rgba(0,0,0,0.1);
-    z-index: 2000;
-    display: flex;
-    flex-direction: column;
-}
-
-.floating-cart {
-    position: fixed;
-    bottom: 35px; right: 35px;
-    width: 65px; height: 65px;
-    background: var(--success);
-    color: white;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
-    cursor: pointer; 
-    z-index: 999;
-    transition: all 0.3s ease;
-}
-
-.floating-cart:hover { transform: scale(1.1) rotate(-5deg); }
-
-/* =========================================
-   RESPONSIVIDADE
+   RESPONSIVIDADE (MOBILE FIX)
    ========================================= */
 @media (max-width: 992px) {
-    .products-container { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .products-container { grid-template-columns: repeat(2, 1fr); gap: 15px; }
 }
 
 @media (max-width: 600px) {
-    header { padding: 40px 15px; }
-    header h1 { font-size: 1.8rem; }
-    .search-container { margin-top: -30px; }
+    header { padding: 40px 15px 60px; }
+    
+    .search-container { 
+        flex-direction: column; 
+        margin-top: -50px;
+        gap: 12px;
+    }
+
+    .search-box { width: 100%; }
+
+    /* Fix: Admin e Categoria lado a lado */
+    .filter-box {
+        width: 100%;
+        display: flex;
+        flex-direction: row; 
+    }
+
+    .filter-box select, .filter-box .button {
+        flex: 1;
+        font-size: 0.85rem;
+        padding: 12px 10px;
+        text-align: center;
+    }
+
     .products-container { grid-template-columns: 1fr; }
+    
     .cart-sidebar { width: 100%; }
-    .floating-cart { width: 55px; height: 55px; bottom: 20px; right: 20px; }
+
+    .floating-cart {
+        width: 55px; height: 55px;
+        bottom: 20px; right: 20px;
+    }
 }
