@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const cartCountBadge = document.getElementById("cart-count-badge");
   const checkoutButton = document.getElementById("checkout-button");
 
-  // SELETORES DO MODAL DE PAGAMENTO
   const paymentModal = document.getElementById("payment-modal");
   const closePaymentBtn = document.getElementById("close-payment");
   const confirmPurchaseBtn = document.getElementById("confirm-purchase");
@@ -37,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentSearchTerm = "";
   let currentCategoryFilter = "all";
 
-  // --- 4. CONTROLE DO CARRINHO (SIDEBAR) ---
+  // --- 4. CONTROLE DO CARRINHO ---
 
   function toggleCart(show) {
     if (show) {
@@ -89,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const div = document.createElement("div");
         div.className = "cart-item";
         div.innerHTML = `
-          <img src="${item.imageUrl || 'https://via.placeholder.com/50'}" alt="${item.name}">
+          <img src="${item.imageUrl || 'https://via.placeholder.com/50'}" alt="${item.name}" loading="lazy">
           <div class="cart-item-info">
             <h4>${item.name}</h4>
             <p class="cart-item-price">R$ ${item.price.toFixed(2).replace(".", ",")}</p>
@@ -111,13 +110,12 @@ document.addEventListener("DOMContentLoaded", () => {
     cartCountBadge.textContent = count;
   }
 
-  // --- 5. LÓGICA DO MODAL DE PAGAMENTO ---
+  // --- 5. LÓGICA DE PAGAMENTO ---
 
   function calculateFinalTotal() {
     let total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     const selectedMethod = document.querySelector('input[name="pay-method"]:checked').value;
 
-    // Simulação de desconto para Pix (5%)
     if (selectedMethod === "Pix") {
       total = total * 0.95;
     }
@@ -126,7 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return total;
   }
 
-  // Monitorar troca de opção de pagamento para atualizar total em tempo real
   paymentOptions.forEach(opt => {
     opt.addEventListener("change", calculateFinalTotal);
   });
@@ -134,7 +131,6 @@ document.addEventListener("DOMContentLoaded", () => {
   checkoutButton.onclick = () => {
     if (cart.length === 0) return alert("Adicione produtos primeiro!");
     
-    // Abrir modal e preencher resumo
     paymentItemsList.innerHTML = cart.map(i => `
       <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:5px;">
         <span>${i.quantity}x ${i.name}</span>
@@ -144,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     calculateFinalTotal();
     paymentModal.classList.remove("hidden");
-    toggleCart(false); // Fecha a sidebar para focar no modal
+    toggleCart(false);
   };
 
   closePaymentBtn.onclick = () => paymentModal.classList.add("hidden");
@@ -166,16 +162,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const url = `https://wa.me/${SEU_TELEFONE}?text=${encodeURIComponent(msg)}`;
     window.open(url, "_blank");
-    
-    // Opcional: Limpar carrinho após sucesso
-    // cart = []; saveCart(); paymentModal.classList.add("hidden");
   };
 
-  // --- 6. BUSCA E RENDERIZAÇÃO ---
+  // --- 6. BUSCA E RENDERIZAÇÃO OTIMIZADA ---
+
+  function showSkeletons() {
+    productsContainer.innerHTML = "";
+    for (let i = 0; i < productsPerPage; i++) {
+      const skeleton = document.createElement("div");
+      skeleton.className = "product-card skeleton-card";
+      skeleton.innerHTML = `
+        <div class="skeleton-image" style="width:100%; aspect-ratio:1/1; background:#eee;"></div>
+        <div class="product-card-content">
+          <div class="skeleton-text" style="height:20px; width:80%; background:#eee; margin-bottom:10px;"></div>
+          <div class="skeleton-text" style="height:15px; width:40%; background:#eee;"></div>
+        </div>
+      `;
+      productsContainer.appendChild(skeleton);
+    }
+  }
 
   async function fetchProducts() {
     try {
-      productsContainer.innerHTML = '<div class="info-message">Buscando novidades...</div>';
+      showSkeletons();
       
       let url = `${API_BASE_URL}/products?page=${currentPage}&limit=${productsPerPage}`;
       if (currentSearchTerm) url += `&search=${currentSearchTerm}`;
@@ -192,8 +201,13 @@ document.addEventListener("DOMContentLoaded", () => {
           const card = document.createElement("div");
           card.className = "product-card";
           card.innerHTML = `
-            <div class="product-image-container">
-              <img src="${p.imageUrl}" alt="${p.name}" loading="lazy" onload="this.style.opacity=1">
+            <div class="product-image-container" style="aspect-ratio: 1/1; background: #f5f5f5; overflow: hidden; position: relative;">
+              <img src="${p.imageUrl}" 
+                   alt="${p.name}" 
+                   loading="lazy" 
+                   decoding="async"
+                   style="width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.3s;"
+                   onload="this.style.opacity=1">
             </div>
             <div class="product-card-content">
               <h3>${p.name}</h3>
@@ -223,6 +237,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const addBtn = e.target.closest(".add-to-cart-button");
     if (addBtn) {
       const id = addBtn.dataset.id;
+      // Pequeno feedback visual no botão ao clicar
+      addBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+      
       const res = await fetch(`${API_BASE_URL}/products/${id}`);
       const p = await res.json();
       
@@ -231,6 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
       else cart.push({...p, quantity: 1});
       
       saveCart();
+      addBtn.innerHTML = '<i class="fa fa-cart-plus"></i> Adicionar';
       toggleCart(true); 
     }
   };
@@ -249,7 +267,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const btn = document.createElement("button");
       btn.className = `pagination-button ${i === currentPage ? 'active' : ''}`;
       btn.innerText = i;
-      btn.onclick = () => { currentPage = i; fetchProducts(); window.scrollTo(0,0); };
+      btn.onclick = () => { 
+        currentPage = i; 
+        fetchProducts(); 
+        window.scrollTo({ top: 0, behavior: 'smooth' }); 
+      };
       paginationControls.appendChild(btn);
     }
   }
