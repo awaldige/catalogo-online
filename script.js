@@ -79,27 +79,27 @@ document.addEventListener("DOMContentLoaded", () => {
     let count = 0;
 
     if (cart.length === 0) {
-      cartItemsContainer.innerHTML = '<p class="empty-msg">Seu carrinho está vazio.</p>';
+      cartItemsContainer.innerHTML = '<p class="empty-msg" style="text-align:center; padding:20px; color:#64748b;">Seu carrinho está vazio.</p>';
     } else {
       cart.forEach(item => {
         total += item.price * item.quantity;
         count += item.quantity;
         
         const div = document.createElement("div");
-        div.className = "cart-item";
+        div.className = "cart-item"; 
         div.innerHTML = `
-          <img src="${item.imageUrl || 'https://via.placeholder.com/50'}" alt="${item.name}" loading="lazy">
+          <img src="${item.imageUrl || 'https://via.placeholder.com/70'}" alt="${item.name}">
           <div class="cart-item-info">
             <h4>${item.name}</h4>
-            <p class="cart-item-price">R$ ${item.price.toFixed(2).replace(".", ",")}</p>
-            <div class="qty-controls">
-              <button onclick="updateQty('${item._id}', -1)">-</button>
-              <span>${item.quantity}</span>
-              <button onclick="updateQty('${item._id}', 1)">+</button>
+            <p>R$ ${item.price.toFixed(2).replace(".", ",")}</p>
+            <div class="qty-controls" style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+              <button onclick="updateQty('${item._id}', -1)" style="width:30px; height:30px; border-radius:50%; border:1px solid #ddd; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:bold;">-</button>
+              <span style="font-weight:bold; font-size:1rem;">${item.quantity}</span>
+              <button onclick="updateQty('${item._id}', 1)" style="width:30px; height:30px; border-radius:50%; border:1px solid #ddd; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:bold;">+</button>
             </div>
           </div>
-          <button class="delete-item" onclick="removeItem('${item._id}')">
-            <i class="fa fa-trash"></i>
+          <button class="delete-item" onclick="removeItem('${item._id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:10px;">
+            <i class="fa fa-trash" style="font-size:1.2rem;"></i>
           </button>
         `;
         cartItemsContainer.appendChild(div);
@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cart.length === 0) return alert("Adicione produtos primeiro!");
     
     paymentItemsList.innerHTML = cart.map(i => `
-      <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:5px;">
+      <div style="display:flex; justify-content:space-between; font-size:0.95rem; margin-bottom:8px;">
         <span>${i.quantity}x ${i.name}</span>
         <span>R$ ${(i.price * i.quantity).toFixed(2).replace(".", ",")}</span>
       </div>
@@ -213,8 +213,8 @@ document.addEventListener("DOMContentLoaded", () => {
               <h3>${p.name}</h3>
               <p class="price">R$ ${p.price.toFixed(2).replace(".", ",")}</p>
               <div class="product-actions hidden">
-                 <button class="btn-edit" data-id="${p._id}"><i class="fa fa-edit"></i></button>
-                 <button class="btn-delete" data-id="${p._id}"><i class="fa fa-trash"></i></button>
+                  <button class="btn-edit" data-id="${p._id}"><i class="fa fa-edit"></i></button>
+                  <button class="btn-delete" data-id="${p._id}"><i class="fa fa-trash"></i></button>
               </div>
               <button class="button button-primary add-to-cart-button" data-id="${p._id}">
                 <i class="fa fa-cart-plus"></i> Adicionar
@@ -237,7 +237,6 @@ document.addEventListener("DOMContentLoaded", () => {
     paginationControls.innerHTML = "";
     if (total <= 1) return;
 
-    // Configuração para não poluir o mobile com muitos números
     const maxButtons = window.innerWidth < 600 ? 5 : 8;
     let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
     let endPage = Math.min(total, startPage + maxButtons - 1);
@@ -246,25 +245,23 @@ document.addEventListener("DOMContentLoaded", () => {
       startPage = Math.max(1, endPage - maxButtons + 1);
     }
 
-    // Botão Voltar (Opcional, mas ajuda muito no mobile)
     if (currentPage > 1) {
-        createPageButton("<", currentPage - 1);
+      createPageButton('<i class="fa fa-chevron-left"></i>', currentPage - 1);
     }
 
     for (let i = startPage; i <= endPage; i++) {
-        createPageButton(i, i);
+      createPageButton(i, i);
     }
 
-    // Botão Próximo
     if (currentPage < total) {
-        createPageButton(">", currentPage + 1);
+      createPageButton('<i class="fa fa-chevron-right"></i>', currentPage + 1);
     }
   }
 
   function createPageButton(text, pageNum) {
     const btn = document.createElement("button");
     btn.className = `pagination-button ${pageNum === currentPage ? 'active' : ''}`;
-    btn.innerText = text;
+    btn.innerHTML = text; // Permite ícones HTML
     btn.onclick = () => { 
       currentPage = pageNum; 
       fetchProducts(); 
@@ -279,18 +276,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const addBtn = e.target.closest(".add-to-cart-button");
     if (addBtn) {
       const id = addBtn.dataset.id;
+      const originalContent = addBtn.innerHTML;
       addBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
       
-      const res = await fetch(`${API_BASE_URL}/products/${id}`);
-      const p = await res.json();
-      
-      const exist = cart.find(i => i._id === id);
-      if (exist) exist.quantity++;
-      else cart.push({...p, quantity: 1});
-      
-      saveCart();
-      addBtn.innerHTML = '<i class="fa fa-cart-plus"></i> Adicionar';
-      toggleCart(true); 
+      try {
+        const res = await fetch(`${API_BASE_URL}/products/${id}`);
+        const p = await res.json();
+        
+        const exist = cart.find(i => i._id === id);
+        if (exist) exist.quantity++;
+        else cart.push({...p, quantity: 1});
+        
+        saveCart();
+        addBtn.innerHTML = originalContent;
+        toggleCart(true); 
+      } catch (error) {
+        alert("Erro ao adicionar produto.");
+        addBtn.innerHTML = originalContent;
+      }
     }
   };
 
@@ -312,6 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
     addProductSection.classList.remove("hidden");
     btnShowAdminPanel.classList.add("hidden");
     btnHideAdminPanel.classList.remove("hidden");
+    btnHideAdminPanel.innerHTML = '<i class="fa fa-sign-out-alt"></i> Sair do Modo Admin';
     renderAdminActions();
   };
 
@@ -319,6 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     addProductSection.classList.add("hidden");
     btnShowAdminPanel.classList.remove("hidden");
     btnHideAdminPanel.classList.add("hidden");
+    btnShowAdminPanel.innerHTML = '<i class="fa fa-lock"></i> Entrar como Admin';
     renderAdminActions();
   };
 
