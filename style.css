@@ -2,15 +2,18 @@
    VARIÁVEIS E REGRAS GLOBAIS
    ========================================= */
 :root {
-    --primary: #007bff;
+    --primary: #007aff; /* Azul vibrante estilo iOS */
     --primary-dark: #0056b3;
     --success: #28a745;
     --danger: #dc3545;
-    --bg-body: #f4f7f6;
+    --bg-body: #f8fafc; /* Cinza levemente mais azulado e limpo */
     --bg-card: #ffffff;
-    --text-main: #2d3436;
-    --radius: 12px;
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+    --text-main: #1e293b; /* Cor de texto mais moderna (Slate) */
+    --text-muted: #64748b;
+    --radius-lg: 20px;
+    --radius-md: 12px;
+    --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 * { 
@@ -20,7 +23,6 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Ajuste fundamental para o Rodapé Fixo no final */
 html, body {
     height: 100%;
 }
@@ -31,87 +33,101 @@ body {
     color: var(--text-main);
     overflow-x: hidden;
     line-height: 1.6;
-    /* Estrutura Flexbox para empurrar o rodapé */
     display: flex;
     flex-direction: column;
 }
 
 .hidden { display: none !important; }
 
-/* Envolva seu conteúdo principal (filtros + grid) em uma tag <main> no HTML */
 main {
-    flex: 1 0 auto; /* Faz o conteúdo crescer e empurrar o footer para baixo */
+    flex: 1 0 auto;
 }
 
 /* =========================================
-   HEADER
+   HEADER (GRADIENTE MODERNO)
    ========================================= */
 header {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); /* Escuro elegante */
     color: white;
-    padding: 50px 20px;
+    padding: 60px 20px;
     text-align: center;
     flex-shrink: 0;
 }
 
-header h1 { font-size: 2.2rem; margin-bottom: 10px; }
+header h1 { 
+    font-size: 2.5rem; 
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 10px; 
+}
 
 /* =========================================
-   BARRA DE BUSCA E FILTROS
+   BARRA DE BUSCA E FILTROS (GLASSMORPHISM)
    ========================================= */
 .search-container {
     display: flex;
     gap: 15px;
     max-width: 1100px;
-    margin: 30px auto; /* Aumentado margem superior */
+    margin: -35px auto 40px; /* Sobrepõe levemente o header */
     padding: 0 20px;
+    position: relative;
+    z-index: 10;
 }
 
 .search-box {
     flex: 2;
     position: relative;
     background: white;
-    border-radius: 30px;
+    border-radius: 50px;
     display: flex;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.search-box:focus-within {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--primary);
 }
 
 .search-box i {
     position: absolute;
     left: 20px;
-    color: #a0a0a0;
+    color: var(--text-muted);
 }
 
 .search-box input {
     width: 100%;
-    padding: 15px 15px 15px 50px;
-    border: 1px solid #eee;
-    border-radius: 30px;
+    padding: 18px 20px 18px 55px;
+    border: none;
+    border-radius: 50px;
     outline: none;
     font-size: 1rem;
-}
-
-.filter-box {
-    flex: 1;
-    display: flex;
-    gap: 10px;
+    color: var(--text-main);
 }
 
 .filter-box select {
-    padding: 10px 15px;
-    border-radius: 30px;
-    border: 1px solid #eee;
+    padding: 10px 25px;
+    border-radius: 50px;
+    border: 1px solid rgba(0,0,0,0.05);
     background: white;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow-soft);
     cursor: pointer;
     font-family: inherit;
+    font-weight: 500;
+    color: var(--text-main);
     width: 100%;
     outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 20px center;
 }
 
 /* =========================================
-   GRID DE PRODUTOS
+   GRID E CARDS (ESTILO PREMIUM)
    ========================================= */
 .products-container {
     display: grid;
@@ -124,30 +140,27 @@ header h1 { font-size: 2.2rem; margin-bottom: 10px; }
 
 .product-card {
     background: white;
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    border: 1px solid #f0f0f0;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(0,0,0,0.03);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     height: 100%;
-    will-change: transform;
+    padding: 12px; /* Interno para criar moldura */
 }
 
 .product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-hover);
 }
 
 .product-image-container {
     width: 100%;
     aspect-ratio: 1 / 1; 
-    background-color: #f8f9fa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid #f0f0f0;
+    background-color: #f1f5f9;
+    border-radius: 14px; /* Imagem arredondada */
     overflow: hidden;
     position: relative;
 }
@@ -156,160 +169,166 @@ header h1 { font-size: 2.2rem; margin-bottom: 10px; }
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: opacity 0.4s ease-in-out;
+    transition: transform 0.6s ease;
+}
+
+.product-card:hover img {
+    transform: scale(1.08);
 }
 
 .product-card-content {
-    padding: 20px;
+    padding: 20px 10px 10px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
 }
 
 .product-card h3 { 
-    font-size: 1rem; 
-    margin-bottom: 10px; 
-    color: #333; 
-    min-height: 44px; 
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 1.1rem; 
+    font-weight: 600;
+    margin-bottom: 8px; 
+    color: var(--text-main);
+    min-height: 44px;
 }
 
 .product-card .price { 
-    color: var(--success); 
+    color: var(--text-main);
     font-weight: 700; 
-    font-size: 1.3rem; 
-    margin-bottom: 15px; 
+    font-size: 1.4rem; 
+    margin-bottom: 20px; 
+    display: block;
 }
 
 /* =========================================
-   PAGINAÇÃO (RESPONSIVA)
+   BOTÕES (DESIGN DE ALTO NÍVEL)
+   ========================================= */
+.button {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+.button-primary { 
+    background: var(--primary); 
+    color: white; 
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+}
+
+.button-primary:hover {
+    background: var(--primary-dark);
+    box-shadow: 0 6px 15px rgba(0, 122, 255, 0.4);
+}
+
+/* Botão de Adicionar no Card */
+.add-to-cart-button {
+    background: #f1f5f9;
+    color: var(--primary);
+    width: 100%;
+    margin-top: auto;
+}
+
+.add-to-cart-button:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* =========================================
+   PAGINAÇÃO (CLEAN)
    ========================================= */
 #pagination {
     display: flex;
     justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin: 40px auto 60px; /* Margem inferior aumentada para não colar no footer */
-    padding: 10px 20px;
-    max-width: 100%;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    scrollbar-width: none;
+    gap: 10px;
+    margin: 50px auto 80px;
+    padding: 0 20px;
 }
 
-#pagination::-webkit-scrollbar { display: none; }
-
 .pagination-button {
-    min-width: 44px;
-    height: 44px;
-    padding: 0 12px;
-    border: 1px solid #ddd;
+    min-width: 46px;
+    height: 46px;
+    border: none;
     background: white;
-    color: var(--text-main);
-    border-radius: 10px;
-    cursor: pointer;
+    color: var(--text-muted);
+    border-radius: 50%; /* Botões circulares */
     font-weight: 600;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    box-shadow: var(--shadow-soft);
+    transition: all 0.3s ease;
 }
 
 .pagination-button.active {
     background: var(--primary);
     color: white;
-    border-color: var(--primary);
+    transform: scale(1.1);
 }
 
 /* =========================================
-   RODAPÉ (CORRIGIDO PARA DESKTOP)
+   RODAPÉ (DARK ELEGANTE)
    ========================================= */
 footer {
-    flex-shrink: 0; /* Impede o rodapé de sumir */
-    background: white;
-    padding: 30px 20px;
+    flex-shrink: 0;
+    background: #0f172a;
+    padding: 40px 20px;
     text-align: center;
-    border-top: 1px solid #eee;
-    color: var(--text-main);
+    color: #94a3b8;
     width: 100%;
 }
 
 footer p {
-    font-size: 0.95rem;
-    font-weight: 500;
+    font-size: 0.9rem;
+    font-weight: 400;
 }
 
 /* =========================================
-   CARRINHO E BOTÕES
+   CARRINHO SIDEBAR (PREMIUM)
    ========================================= */
 .cart-sidebar {
     position: fixed;
     right: 0; top: 0;
-    width: 380px; max-width: 100%;
+    width: 400px; max-width: 100%;
     height: 100%;
     background: white;
-    box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.1);
     z-index: 2000;
     display: flex;
     flex-direction: column;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-.cart-sidebar.hidden { transform: translateX(100%); display: flex !important; }
 
 .floating-cart {
     position: fixed;
-    bottom: 30px; right: 30px; /* Levemente ajustado */
-    width: 60px; height: 60px;
+    bottom: 35px; right: 35px;
+    width: 65px; height: 65px;
     background: var(--success);
     color: white;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    cursor: pointer; z-index: 999;
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
+    cursor: pointer; 
+    z-index: 999;
+    transition: all 0.3s ease;
 }
+
+.floating-cart:hover { transform: scale(1.1) rotate(-5deg); }
 
 /* =========================================
    RESPONSIVIDADE
    ========================================= */
 @media (max-width: 992px) {
-    .products-container { 
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 15px; 
-    }
+    .products-container { grid-template-columns: repeat(2, 1fr); gap: 20px; }
 }
 
 @media (max-width: 600px) {
-    header { padding: 30px 15px; }
-    header h1 { font-size: 1.6rem; }
-    
-    .products-container { 
-        grid-template-columns: 1fr;
-        padding: 0 15px;
-    }
-
-    #pagination {
-        justify-content: flex-start;
-        margin-bottom: 30px;
-    }
-
-    footer {
-        padding: 20px 15px;
-    }
-}
-
-/* Skeleton Loading mantido... */
-.skeleton-card { pointer-events: none; }
-.skeleton-image, .skeleton-text {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: skeleton-loading 1.5s infinite linear;
-}
-@keyframes skeleton-loading {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    header { padding: 40px 15px; }
+    header h1 { font-size: 1.8rem; }
+    .search-container { margin-top: -30px; }
+    .products-container { grid-template-columns: 1fr; }
+    .cart-sidebar { width: 100%; }
+    .floating-cart { width: 55px; height: 55px; bottom: 20px; right: 20px; }
 }
