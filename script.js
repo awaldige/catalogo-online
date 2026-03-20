@@ -231,13 +231,54 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- 7. EVENTOS ---
+  // --- 7. PAGINAÇÃO RESPONSIVA ---
+
+  function renderPagination(total) {
+    paginationControls.innerHTML = "";
+    if (total <= 1) return;
+
+    // Configuração para não poluir o mobile com muitos números
+    const maxButtons = window.innerWidth < 600 ? 5 : 8;
+    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(total, startPage + maxButtons - 1);
+
+    if (endPage - startPage + 1 < maxButtons) {
+      startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+
+    // Botão Voltar (Opcional, mas ajuda muito no mobile)
+    if (currentPage > 1) {
+        createPageButton("<", currentPage - 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        createPageButton(i, i);
+    }
+
+    // Botão Próximo
+    if (currentPage < total) {
+        createPageButton(">", currentPage + 1);
+    }
+  }
+
+  function createPageButton(text, pageNum) {
+    const btn = document.createElement("button");
+    btn.className = `pagination-button ${pageNum === currentPage ? 'active' : ''}`;
+    btn.innerText = text;
+    btn.onclick = () => { 
+      currentPage = pageNum; 
+      fetchProducts(); 
+      window.scrollTo({ top: 0, behavior: 'smooth' }); 
+    };
+    paginationControls.appendChild(btn);
+  }
+
+  // --- 8. EVENTOS DE INTERAÇÃO ---
 
   productsContainer.onclick = async (e) => {
     const addBtn = e.target.closest(".add-to-cart-button");
     if (addBtn) {
       const id = addBtn.dataset.id;
-      // Pequeno feedback visual no botão ao clicar
       addBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
       
       const res = await fetch(`${API_BASE_URL}/products/${id}`);
@@ -259,22 +300,6 @@ document.addEventListener("DOMContentLoaded", () => {
     currentPage = 1;
     fetchProducts();
   };
-
-  function renderPagination(total) {
-    paginationControls.innerHTML = "";
-    if (total <= 1) return;
-    for (let i = 1; i <= total; i++) {
-      const btn = document.createElement("button");
-      btn.className = `pagination-button ${i === currentPage ? 'active' : ''}`;
-      btn.innerText = i;
-      btn.onclick = () => { 
-        currentPage = i; 
-        fetchProducts(); 
-        window.scrollTo({ top: 0, behavior: 'smooth' }); 
-      };
-      paginationControls.appendChild(btn);
-    }
-  }
 
   function renderAdminActions() {
     const isAdmin = !addProductSection.classList.contains("hidden");
