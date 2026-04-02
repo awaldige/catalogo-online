@@ -13,10 +13,11 @@ Este é um projeto **Full Stack** de um catálogo de produtos completo, focado e
 
 ## 🖼️ Demonstração
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/32c343ca-9803-4bcc-9e80-ca9720a39f26" width="48%" style="border-radius: 10px" />
-  <img src="https://github.com/user-attachments/assets/4b6df3ad-318c-4918-9c01-4311ec7cd463" width="48%" style="border-radius: 10px" />
-</p>
+![Captura de tela 2026-04-02 154934](https://github.com/user-attachments/assets/e4fb6276-ce01-4378-8daa-72c3d49508e4)
+![Captura de tela 2026-04-02 155311](https://github.com/user-attachments/assets/d8cf6dc7-50fc-4d59-b96f-52eba1d27ab7)
+![Captura de tela 2026-04-02 155231](https://github.com/user-attachments/assets/a54946c5-b35c-40ad-b971-540bb17fce77)
+![Captura de tela 2026-04-02 155208](https://github.com/user-attachments/assets/90261590-d117-4ab0-86aa-1dc6bde90ef5)
+
 
 > [!IMPORTANT]
 > **Nota sobre o carregamento:** O backend está hospedado no plano gratuito do **Render**. Por isso, o servidor entra em repouso após inatividade. **O primeiro acesso pode levar de 30 a 60 segundos** para o servidor "acordar". Após isso, o uso é instantâneo.
