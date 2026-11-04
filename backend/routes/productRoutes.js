@@ -1,23 +1,48 @@
 
 const express = require('express');
 const mongoose = require('mongoose');
+
 const router = express.Router();
 
 const Product = require('../models/Product');
 const authMiddleware = require('../middleware/authMiddleware');
 
+// ======================================================
+// CONFIGURAÇÕES
+// ======================================================
+
 const MAX_LIMIT = 50;
 const MAX_SEARCH_LENGTH = 100;
 
+const ALLOWED_CATEGORIES = [
+  'Feminino',
+  'Masculino',
+  'Infantil',
+  'Beleza',
+  'Jeans',
+  'Calçados',
+  'Esportivo',
+  'Moda Praia',
+  'Moda Íntima'
+];
+
+// ======================================================
+// FUNÇÕES AUXILIARES
+// ======================================================
+
+// Protege expressões regulares contra caracteres especiais.
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// Converte e valida valores numéricos.
 function parseNumber(value, field, options = {}) {
   const number = Number(value);
 
   if (
     value === '' ||
+    value === null ||
+    value === undefined ||
     !Number.isFinite(number) ||
     (options.integer && !Number.isInteger(number)) ||
     (options.min !== undefined && number < options.min)
@@ -28,6 +53,7 @@ function parseNumber(value, field, options = {}) {
   return number;
 }
 
+// Valida os dados enviados para cadastro e atualização.
 function validateProductData(body, isUpdate = false) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new Error('Dados do produto inválidos.');
@@ -58,33 +84,67 @@ function validateProductData(body, isUpdate = false) {
     throw new Error('Nome e preço são obrigatórios.');
   }
 
+  // Nome
   if (data.name !== undefined) {
     if (typeof data.name !== 'string' || !data.name.trim()) {
       throw new Error('Nome do produto inválido.');
     }
 
     data.name = data.name.trim();
+
+    if (data.name.length > 200) {
+      throw new Error(
+        'O nome do produto deve ter no máximo 200 caracteres.'
+      );
+    }
   }
 
-  if (data.description !== undefined &&
-      typeof data.description !== 'string') {
-    throw new Error('Descrição inválida.');
+  // Descrição
+  if (data.description !== undefined) {
+    if (typeof data.description !== 'string') {
+      throw new Error('Descrição inválida.');
+    }
+
+    data.description = data.description.trim();
+
+    if (data.description.length > 5000) {
+      throw new Error(
+        'A descrição deve ter no máximo 5000 caracteres.'
+      );
+    }
   }
 
-  if (data.category !== undefined &&
-      typeof data.category !== 'string') {
-    throw new Error('Categoria inválida.');
+  // Categoria
+  if (data.category !== undefined) {
+    if (
+      typeof data.category !== 'string' ||
+      !ALLOWED_CATEGORIES.includes(data.category)
+    ) {
+      throw new Error('Categoria inválida.');
+    }
   }
 
-  if (data.imageUrl !== undefined &&
-      typeof data.imageUrl !== 'string') {
-    throw new Error('Endereço da imagem inválido.');
+  // Imagem
+  if (data.imageUrl !== undefined) {
+    if (typeof data.imageUrl !== 'string') {
+      throw new Error('Endereço da imagem inválido.');
+    }
+
+    data.imageUrl = data.imageUrl.trim();
+
+    if (data.imageUrl.length > 2048) {
+      throw new Error('O endereço da imagem é muito longo.');
+    }
   }
 
+  // Preço
   if (data.price !== undefined) {
-    data.price = parseNumber(data.price, 'preço', { min: 0 });
+    data.price = parseNumber(data.price, 'preço', {
+      min: 0
+    });
   }
 
+  // Estoque
   if (data.stock !== undefined) {
     data.stock = parseNumber(data.stock, 'estoque', {
       min: 0,
@@ -95,12 +155,16 @@ function validateProductData(body, isUpdate = false) {
   return data;
 }
 
+// Valida identificadores MongoDB.
 function validateProductId(id) {
   return mongoose.isObjectIdOrHexString(id);
 }
 
+// ======================================================
 // GET /api/products
 // Consulta pública com filtros e paginação.
+// ======================================================
+
 router.get('/', async (req, res) => {
   try {
     const {
@@ -111,15 +175,23 @@ router.get('/', async (req, res) => {
       minStock
     } = req.query;
 
-    const page = parseNumber(req.query.page ?? 1, 'página', {
-      min: 1,
-      integer: true
-    });
+    const page = parseNumber(
+      req.query.page ?? 1,
+      'página',
+      {
+        min: 1,
+        integer: true
+      }
+    );
 
-    const limit = parseNumber(req.query.limit ?? 10, 'limite', {
-      min: 1,
-      integer: true
-    });
+    const limit = parseNumber(
+      req.query.limit ?? 10,
+      'limite',
+      {
+        min: 1,
+        integer: true
+      }
+    );
 
     if (limit > MAX_LIMIT) {
       return res.status(400).json({
@@ -127,15 +199,27 @@ router.get('/', async (req, res) => {
       });
     }
 
-    if (search !== undefined &&
-        (typeof search !== 'string' ||
-         search.length > MAX_SEARCH_LENGTH)) {
+    // Validação da busca.
+    if (
+      search !== undefined &&
+      (
+        typeof search !== 'string' ||
+        search.length > MAX_SEARCH_LENGTH
+      )
+    ) {
       return res.status(400).json({
         error: 'Termo de busca inválido.'
       });
     }
 
-    if (category !== undefined && typeof category !== 'string') {
+    // Validação da categoria.
+    if (
+      category !== undefined &&
+      (
+        typeof category !== 'string' ||
+        (category !== 'all' && !ALLOWED_CATEGORIES.includes(category))
+      )
+    ) {
       return res.status(400).json({
         error: 'Categoria inválida.'
       });
@@ -143,10 +227,12 @@ router.get('/', async (req, res) => {
 
     const filter = {};
 
+    // Filtro por categoria.
     if (category && category !== 'all') {
       filter.category = category;
     }
 
+    // Filtro por nome ou descrição.
     if (search && search.trim()) {
       const searchRegex = new RegExp(
         escapeRegex(search.trim()),
@@ -159,38 +245,51 @@ router.get('/', async (req, res) => {
       ];
     }
 
+    // Filtro por faixa de preço.
     if (minPrice !== undefined || maxPrice !== undefined) {
       filter.price = {};
 
       if (minPrice !== undefined) {
-        filter.price.$gte = parseNumber(minPrice, 'preço mínimo', {
-          min: 0
-        });
+        filter.price.$gte = parseNumber(
+          minPrice,
+          'preço mínimo',
+          { min: 0 }
+        );
       }
 
       if (maxPrice !== undefined) {
-        filter.price.$lte = parseNumber(maxPrice, 'preço máximo', {
-          min: 0
-        });
+        filter.price.$lte = parseNumber(
+          maxPrice,
+          'preço máximo',
+          { min: 0 }
+        );
       }
 
-      if (filter.price.$gte !== undefined &&
-          filter.price.$lte !== undefined &&
-          filter.price.$gte > filter.price.$lte) {
+      if (
+        filter.price.$gte !== undefined &&
+        filter.price.$lte !== undefined &&
+        filter.price.$gte > filter.price.$lte
+      ) {
         return res.status(400).json({
           error: 'O preço mínimo não pode superar o preço máximo.'
         });
       }
     }
 
+    // Filtro por estoque.
     if (minStock !== undefined) {
       filter.stock = {
-        $gte: parseNumber(minStock, 'estoque mínimo', { min: 0 })
+        $gte: parseNumber(
+          minStock,
+          'estoque mínimo',
+          { min: 0 }
+        )
       };
     }
 
     const skip = (page - 1) * limit;
 
+    // Consulta dos produtos e contagem total.
     const [products, totalCount] = await Promise.all([
       Product.find(filter)
         .sort({ createdAt: -1, _id: -1 })
@@ -201,16 +300,28 @@ router.get('/', async (req, res) => {
       Product.countDocuments(filter)
     ]);
 
-    return res.json({ products, totalCount });
+    return res.json({
+      products,
+      totalCount,
+      page,
+      limit,
+      totalPages: Math.ceil(totalCount / limit)
+    });
+
   } catch (error) {
+    console.error('Erro ao buscar produtos:', error.message);
+
     return res.status(400).json({
       error: error.message || 'Erro ao buscar produtos.'
     });
   }
 });
 
+// ======================================================
 // GET /api/products/:id
 // Consulta pública de um produto.
+// ======================================================
+
 router.get('/:id', async (req, res) => {
   try {
     if (!validateProductId(req.params.id)) {
@@ -228,6 +339,7 @@ router.get('/:id', async (req, res) => {
     }
 
     return res.json(product);
+
   } catch (error) {
     console.error('Erro ao buscar produto:', error.message);
 
@@ -237,8 +349,11 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// ======================================================
 // POST /api/products
 // Cadastro exclusivo para administradores.
+// ======================================================
+
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const data = validateProductData(req.body);
@@ -246,6 +361,7 @@ router.post('/', authMiddleware, async (req, res) => {
     const product = await Product.create(data);
 
     return res.status(201).json(product);
+
   } catch (error) {
     console.error('Erro ao criar produto:', error.message);
 
@@ -255,8 +371,11 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
+// ======================================================
 // PUT /api/products/:id
 // Atualização exclusiva para administradores.
+// ======================================================
+
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
     if (!validateProductId(req.params.id)) {
@@ -283,6 +402,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 
     return res.json(product);
+
   } catch (error) {
     console.error('Erro ao atualizar produto:', error.message);
 
@@ -292,8 +412,11 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// ======================================================
 // DELETE /api/products/:id
 // Exclusão exclusiva para administradores.
+// ======================================================
+
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     if (!validateProductId(req.params.id)) {
@@ -313,6 +436,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     return res.json({
       message: 'Produto excluído com sucesso.'
     });
+
   } catch (error) {
     console.error('Erro ao excluir produto:', error.message);
 
@@ -321,5 +445,9 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     });
   }
 });
+
+// ======================================================
+// EXPORTAÇÃO
+// ======================================================
 
 module.exports = router;

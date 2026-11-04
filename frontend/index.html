@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f8f6f1">
 
-  <title>CatÃ¡logo Online | Sua Vitrine Digital</title>
-  <meta name="description" content="Descubra produtos selecionados no CatÃ¡logo Online. Moda, estilo e qualidade.">
+  <title>Catálogo Online | Sua Vitrine Digital</title>
+  <meta name="description" content="Descubra produtos selecionados no Catálogo Online. Moda, estilo e qualidade.">
 
   <link rel="icon" type="image/jpeg" href="Catalogodeprodutosonline.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,9 +22,10 @@
 
   <div class="topbar">
     <div class="topbar-inner">
-      <span><i class="fa-solid fa-tag"></i> Moda Â· Estilo Â· Qualidade</span>
+      <span><i class="fa-solid fa-tag"></i> Moda · Estilo · Qualidade</span>
+
       <div class="topbar-links">
-        <span><i class="fa-solid fa-truck"></i> Confira as condiÃ§Ãµes de entrega</span>
+        <span><i class="fa-solid fa-truck"></i> Confira as condições de entrega</span>
         <span><i class="fa-solid fa-shield-halved"></i> Ambiente demonstrativo</span>
       </div>
     </div>
@@ -32,16 +33,19 @@
 
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="#" aria-label="CatÃ¡logo Online - inÃ­cio">
-        <span class="brand-symbol"><i class="fa-solid fa-shop"></i></span>
+      <a class="brand" href="#" aria-label="Catálogo Online - início">
+        <span class="brand-symbol">
+          <i class="fa-solid fa-shop"></i>
+        </span>
+
         <span class="brand-copy">
-          <strong>CATÃLOGO ONLINE</strong>
+          <strong>CATÁLOGO ONLINE</strong>
           <small>SUA VITRINE DIGITAL</small>
         </span>
       </a>
 
-      <nav class="main-nav" aria-label="NavegaÃ§Ã£o principal">
-        <a class="active" href="#">InÃ­cio</a>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <a class="active" href="#">Início</a>
         <a href="#product-list">Produtos</a>
         <a href="#categories">Categorias</a>
         <a href="#about">Sobre</a>
@@ -50,11 +54,25 @@
 
       <div class="header-search">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input id="search-input" type="search" placeholder="O que vocÃª procura?" aria-label="Buscar produtos">
-        <button id="search-button" aria-label="Buscar"><i class="fa-solid fa-arrow-right"></i></button>
+
+        <input
+          id="search-input"
+          type="search"
+          placeholder="O que você procura?"
+          aria-label="Buscar produtos"
+        >
+
+        <button id="search-button" type="button" aria-label="Buscar">
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
       </div>
 
-      <button class="header-cart" id="header-cart-button" type="button" aria-label="Abrir carrinho">
+      <button
+        class="header-cart"
+        id="header-cart-button"
+        type="button"
+        aria-label="Abrir carrinho"
+      >
         <i class="fa-solid fa-bag-shopping"></i>
         <span id="header-cart-count">0</span>
       </button>
@@ -64,42 +82,136 @@
   <main>
     <section class="hero" aria-label="Destaque">
       <div class="hero-content">
-        <span class="eyebrow">MODA Â· ESTILO Â· QUALIDADE</span>
-        <h1>Descubra o melhor<br>em um sÃ³ lugar</h1>
-        <p>Produtos selecionados para vocÃª se sentir ainda melhor.</p>
+        <span class="eyebrow">MODA · ESTILO · QUALIDADE</span>
+
+        <h1>Descubra o melhor<br>em um só lugar</h1>
+
+        <p>Produtos selecionados para você se sentir ainda melhor.</p>
+
         <a href="#product-list" class="hero-button">
-          VER NOSSOS PRODUTOS <i class="fa-solid fa-arrow-right"></i>
+          VER NOSSOS PRODUTOS
+          <i class="fa-solid fa-arrow-right"></i>
         </a>
       </div>
-      <div class="hero-note">SELEÃ‡ÃƒO ESPECIAL <span>â€¢</span> CATÃLOGO ONLINE</div>
+
+      <div class="hero-note">
+        SELEÇÃO ESPECIAL <span>•</span> CATÁLOGO ONLINE
+      </div>
     </section>
 
     <section class="category-section" id="categories">
       <div class="category-list">
-        <a href="#product-list" class="category-item"><span><i class="fa-solid fa-person-dress"></i></span><strong>Feminino</strong></a>
-        <a href="#product-list" class="category-item"><span><i class="fa-solid fa-shirt"></i></span><strong>Masculino</strong></a>
-        <a href="#product-list" class="category-item"><span><i class="fa-solid fa-child"></i></span><strong>Infantil</strong></a>
-        <a href="#product-list" class="category-item"><span><i class="fa-solid fa-spa"></i></span><strong>Beleza</strong></a>
-        <a href="#product-list" class="category-item"><span><i class="fa-solid fa-jeans"></i></span><strong>Jeans</strong></a>
-        <a href="#product-list" class="category-item"><span><i class="fa-solid fa-shoe-prints"></i></span><strong>CalÃ§ados</strong></a>
-        <a href="#product-list" class="category-item"><span><i class="fa-solid fa-dumbbell"></i></span><strong>Esportivo</strong></a>
-        <a href="#product-list" class="category-item"><span><i class="fa-solid fa-umbrella-beach"></i></span><strong>Moda Praia</strong></a>
-        <a href="#product-list" class="category-item"><span><i class="fa-solid fa-heart"></i></span><strong>Moda Ãntima</strong></a>
+
+        <a
+          href="#product-list"
+          class="category-item"
+          data-category="Feminino"
+          aria-label="Ver produtos da categoria Feminino"
+        >
+          <span><i class="fa-solid fa-person-dress"></i></span>
+          <strong>Feminino</strong>
+        </a>
+
+        <a
+          href="#product-list"
+          class="category-item"
+          data-category="Masculino"
+          aria-label="Ver produtos da categoria Masculino"
+        >
+          <span><i class="fa-solid fa-shirt"></i></span>
+          <strong>Masculino</strong>
+        </a>
+
+        <a
+          href="#product-list"
+          class="category-item"
+          data-category="Infantil"
+          aria-label="Ver produtos da categoria Infantil"
+        >
+          <span><i class="fa-solid fa-child"></i></span>
+          <strong>Infantil</strong>
+        </a>
+
+        <a
+          href="#product-list"
+          class="category-item"
+          data-category="Beleza"
+          aria-label="Ver produtos da categoria Beleza"
+        >
+          <span><i class="fa-solid fa-spa"></i></span>
+          <strong>Beleza</strong>
+        </a>
+
+        <a
+          href="#product-list"
+          class="category-item"
+          data-category="Jeans"
+          aria-label="Ver produtos da categoria Jeans"
+        >
+          <span><i class="fa-solid fa-person"></i></span>
+               <strong>Jeans</strong>
+        </a>
+
+        <a
+          href="#product-list"
+          class="category-item"
+          data-category="Calçados"
+          aria-label="Ver produtos da categoria Calçados"
+        >
+          <span><i class="fa-solid fa-shoe-prints"></i></span>
+          <strong>Calçados</strong>
+        </a>
+
+        <a
+          href="#product-list"
+          class="category-item"
+          data-category="Esportivo"
+          aria-label="Ver produtos da categoria Esportivo"
+        >
+          <span><i class="fa-solid fa-dumbbell"></i></span>
+          <strong>Esportivo</strong>
+        </a>
+
+        <a
+          href="#product-list"
+          class="category-item"
+          data-category="Moda Praia"
+          aria-label="Ver produtos da categoria Moda Praia"
+        >
+          <span><i class="fa-solid fa-umbrella-beach"></i></span>
+          <strong>Moda Praia</strong>
+        </a>
+
+        <a
+          href="#product-list"
+          class="category-item"
+          data-category="Moda Íntima"
+          aria-label="Ver produtos da categoria Moda Íntima"
+        >
+          <span><i class="fa-solid fa-heart"></i></span>
+          <strong>Moda Íntima</strong>
+        </a>
+
       </div>
     </section>
 
     <section class="catalog-section" id="product-list">
       <div class="section-heading">
         <div>
-          <span class="section-kicker">ESCOLHAS PARA VOCÃŠ</span>
+          <span class="section-kicker">ESCOLHAS PARA VOCÊ</span>
           <h2>Nossos produtos</h2>
         </div>
+
         <div class="heading-line"></div>
+
         <span class="section-caption">QUALIDADE E ESTILO</span>
       </div>
 
       <div class="catalog-tools">
-        <label class="filter-label" for="category-filter">Filtrar por categoria</label>
+        <label class="filter-label" for="category-filter">
+          Filtrar por categoria
+        </label>
+
         <select id="category-filter">
           <option value="all">Todas as categorias</option>
           <option value="Feminino">Feminino</option>
@@ -107,10 +219,10 @@
           <option value="Infantil">Infantil</option>
           <option value="Beleza">Beleza</option>
           <option value="Jeans">Jeans</option>
-          <option value="CalÃ§ados">CalÃ§ados</option>
+          <option value="Calçados">Calçados</option>
           <option value="Esportivo">Esportivo</option>
           <option value="Moda Praia">Moda Praia</option>
-          <option value="Moda Ãntima">Moda Ãntima</option>
+          <option value="Moda Íntima">Moda Íntima</option>
         </select>
       </div>
 
@@ -119,86 +231,193 @@
     </section>
 
     <section class="about-strip" id="about">
-      <span class="about-icon"><i class="fa-solid fa-star"></i></span>
+      <span class="about-icon">
+        <i class="fa-solid fa-star"></i>
+      </span>
+
       <div>
-        <span class="section-kicker">CATÃLOGO ONLINE</span>
-        <h2>Uma experiÃªncia de compra simples e especial.</h2>
-        <p>Explore nossa seleÃ§Ã£o de produtos e encontre aquilo que combina com vocÃª.</p>
+        <span class="section-kicker">CATÁLOGO ONLINE</span>
+
+        <h2>Uma experiência de compra simples e especial.</h2>
+
+        <p>
+          Explore nossa seleção de produtos e encontre aquilo que combina com você.
+        </p>
       </div>
     </section>
   </main>
 
   <aside id="cart-sidebar" class="cart-sidebar hidden" aria-label="Meu carrinho">
     <div class="cart-header">
-      <div><i class="fa-solid fa-bag-shopping"></i><h3>Meu carrinho</h3></div>
-      <button id="close-cart" class="close-cart-btn" type="button" aria-label="Fechar carrinho">&times;</button>
-    </div>
-    <div id="cart-items-container" class="cart-body">
-      <p id="empty-cart-message">Seu carrinho estÃ¡ vazio.</p>
-    </div>
-    <div class="cart-footer">
-      <div class="cart-total-row"><span>Total</span><strong id="cart-total">R$ 0,00</strong></div>
-      <button id="checkout-button" class="button button-success btn-block" type="button">
-        Continuar <i class="fa-solid fa-arrow-right"></i>
+      <div>
+        <i class="fa-solid fa-bag-shopping"></i>
+        <h3>Meu carrinho</h3>
+      </div>
+
+      <button
+        id="close-cart"
+        class="close-cart-btn"
+        type="button"
+        aria-label="Fechar carrinho"
+      >
+        &times;
       </button>
-      <p class="demo-note">Ambiente demonstrativo. Nenhum pagamento serÃ¡ realizado.</p>
+    </div>
+
+    <div id="cart-items-container" class="cart-body">
+      <p id="empty-cart-message">Seu carrinho está vazio.</p>
+    </div>
+
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span>Total</span>
+        <strong id="cart-total">R$ 0,00</strong>
+      </div>
+
+      <button
+        id="checkout-button"
+        class="button button-success btn-block"
+        type="button"
+      >
+        Continuar
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+
+      <p class="demo-note">
+        Ambiente demonstrativo. Nenhum pagamento será realizado.
+      </p>
     </div>
   </aside>
 
-  <div id="payment-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="payment-title">
+  <div
+    id="payment-modal"
+    class="modal hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="payment-title"
+  >
     <div class="modal-content">
       <div class="modal-header">
-        <div><span class="section-kicker">SEU PEDIDO</span><h3 id="payment-title">Resumo demonstrativo</h3></div>
-        <button id="close-payment" class="close-btn" type="button" aria-label="Fechar">&times;</button>
+        <div>
+          <span class="section-kicker">SEU PEDIDO</span>
+          <h3 id="payment-title">Resumo demonstrativo</h3>
+        </div>
+
+        <button
+          id="close-payment"
+          class="close-btn"
+          type="button"
+          aria-label="Fechar"
+        >
+          &times;
+        </button>
       </div>
+
       <div class="modal-body">
         <div class="order-summary-box">
           <h4>Produtos selecionados</h4>
+
           <div id="payment-items-list"></div>
-          <div class="total-line"><strong>Total:</strong><span id="payment-total-value">R$ 0,00</span></div>
+
+          <div class="total-line">
+            <strong>Total:</strong>
+            <span id="payment-total-value">R$ 0,00</span>
+          </div>
         </div>
 
         <h4 class="payment-heading">Simular forma de pagamento</h4>
+
         <div class="payment-options">
-          <label class="pay-option"><input type="radio" name="pay-method" value="Pix" checked><span><i class="fa-brands fa-pix"></i> Pix <strong>(5% demonstrativo)</strong></span></label>
-          <label class="pay-option"><input type="radio" name="pay-method" value="CartÃ£o de CrÃ©dito"><span><i class="fa-solid fa-credit-card"></i> CartÃ£o de crÃ©dito</span></label>
-          <label class="pay-option"><input type="radio" name="pay-method" value="Boleto"><span><i class="fa-solid fa-barcode"></i> Boleto</span></label>
+          <label class="pay-option">
+            <input type="radio" name="pay-method" value="Pix" checked>
+            <span>
+              <i class="fa-brands fa-pix"></i>
+              Pix
+              <strong>(5% demonstrativo)</strong>
+            </span>
+          </label>
+
+          <label class="pay-option">
+            <input
+              type="radio"
+              name="pay-method"
+              value="Cartão de Crédito"
+            >
+            <span>
+              <i class="fa-solid fa-credit-card"></i>
+              Cartão de crédito
+            </span>
+          </label>
+
+          <label class="pay-option">
+            <input type="radio" name="pay-method" value="Boleto">
+            <span>
+              <i class="fa-solid fa-barcode"></i>
+              Boleto
+            </span>
+          </label>
         </div>
 
-        <p class="demo-note modal-demo-note">Esta Ã© uma simulaÃ§Ã£o de compra. NÃ£o hÃ¡ cobranÃ§a nem envio de pedido real.</p>
-        <button id="confirm-purchase" class="button button-success btn-block" type="button">Concluir demonstraÃ§Ã£o</button>
+        <p class="demo-note modal-demo-note">
+          Esta é uma simulação de compra. Não há cobrança nem envio de pedido real.
+        </p>
+
+        <button
+          id="confirm-purchase"
+          class="button button-success btn-block"
+          type="button"
+        >
+          Concluir demonstração
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Elementos legados ocultos: serÃ£o removidos ao separar definitivamente o painel administrativo. -->
+  <!-- Elementos legados ocultos: serão removidos ao separar definitivamente o painel administrativo. -->
   <section id="legacy-admin" class="hidden" aria-hidden="true">
     <button id="btnShowAdminPanel" type="button"></button>
     <button id="btnHideAdminPanel" type="button"></button>
+
     <section id="add-product-section" class="hidden">
       <form id="add-product-form">
         <h3 id="productFormTitle">Gerenciar Produto</h3>
+
         <input type="hidden" id="product-id">
         <input id="name" type="text">
         <textarea id="description"></textarea>
         <input id="price" type="number">
         <input id="stock" type="number">
         <input id="imageUrl" type="text">
-        <select id="category"><option value="">Selecione</option></select>
+
+        <select id="category">
+          <option value="">Selecione</option>
+        </select>
       </form>
     </section>
   </section>
 
   <footer class="site-footer" id="footer">
-    <a class="footer-brand" href="#">CATÃLOGO ONLINE</a>
-    <p>Sua vitrine digital Â· Moda Â· Estilo Â· Qualidade</p>
+    <a class="footer-brand" href="#">CATÁLOGO ONLINE</a>
+
+    <p>Sua vitrine digital · Moda · Estilo · Qualidade</p>
+
     <div class="footer-bottom">
-      <span>Â© <span id="current-year"></span> AndrÃ© Waldige</span>
-      <span>Projeto demonstrativo desenvolvido por AW TECHNOLOGY</span>
+      <span>
+        © <span id="current-year"></span> André Waldige
+      </span>
+
+      <span>
+        Projeto demonstrativo desenvolvido por AW TECHNOLOGY
+      </span>
     </div>
   </footer>
 
-  <button id="floating-cart" class="floating-cart" type="button" aria-label="Abrir carrinho">
+  <button
+    id="floating-cart"
+    class="floating-cart"
+    type="button"
+    aria-label="Abrir carrinho"
+  >
     <i class="fa-solid fa-bag-shopping"></i>
     <span id="cart-count-badge">0</span>
   </button>
@@ -206,4 +425,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
