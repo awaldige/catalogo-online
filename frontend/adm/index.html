@@ -1,0 +1,293 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#171717">
+  <title>Acesso Administrativo | Catálogo Online</title>
+
+  <style>
+    :root {
+      --graphite: #171717;
+      --graphite-light: #242424;
+      --bronze: #b08d57;
+      --bronze-light: #d2b17c;
+      --background: #f4f1eb;
+      --white: #ffffff;
+      --muted: #858585;
+      --danger: #c64747;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(176,141,87,.12), transparent 32%),
+        var(--background);
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--graphite);
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 430px;
+      overflow: hidden;
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.12);
+    }
+
+    .login-header {
+      padding: 38px 32px 32px;
+      text-align: center;
+      color: var(--white);
+      background: var(--graphite);
+      border-bottom: 3px solid var(--bronze);
+    }
+
+    .brand {
+      margin-bottom: 12px;
+      color: var(--bronze-light);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 4px;
+    }
+
+    .login-header h1 {
+      font-family: Georgia, serif;
+      font-size: 27px;
+      font-weight: 400;
+    }
+
+    .login-header p {
+      margin-top: 10px;
+      color: #bdbdbd;
+      font-size: 13px;
+    }
+
+    .login-content {
+      padding: 34px 32px 30px;
+    }
+
+    .login-content h2 {
+      margin-bottom: 8px;
+      font-size: 21px;
+    }
+
+    .subtitle {
+      margin-bottom: 27px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 19px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      height: 48px;
+      padding: 0 14px;
+      border: 1px solid #dedbd5;
+      border-radius: 7px;
+      outline: none;
+      background: #fcfbf9;
+      color: var(--graphite);
+      font-size: 14px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    input:focus {
+      border-color: var(--bronze);
+      box-shadow: 0 0 0 3px rgba(176,141,87,.13);
+    }
+
+    button {
+      width: 100%;
+      height: 49px;
+      margin-top: 7px;
+      border: none;
+      border-radius: 7px;
+      background: var(--bronze);
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+
+    button:hover:not(:disabled) {
+      background: #987644;
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: .7;
+      cursor: wait;
+    }
+
+    .message {
+      display: none;
+      margin-bottom: 17px;
+      padding: 11px 13px;
+      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .message.error {
+      display: block;
+      color: var(--danger);
+      background: #fff0f0;
+      border: 1px solid #f2d0d0;
+    }
+
+    .login-footer {
+      padding: 18px 20px;
+      border-top: 1px solid #eeeae3;
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .login-footer strong {
+      color: var(--bronze);
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 480px) {
+      .login-header {
+        padding: 32px 22px 27px;
+      }
+
+      .login-content {
+        padding: 29px 23px 25px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="login-container">
+    <header class="login-header">
+      <div class="brand">AW TECHNOLOGY</div>
+      <h1>Catálogo Online</h1>
+      <p>Área exclusiva de administração</p>
+    </header>
+
+    <section class="login-content">
+      <h2>Bem-vindo</h2>
+      <p class="subtitle">Entre com suas credenciais para acessar o painel administrativo.</p>
+
+      <div id="msg" class="message" role="alert" aria-live="polite"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="Digite seu e-mail"
+            autocomplete="username"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input
+            type="password"
+            id="password"
+            placeholder="Digite sua senha"
+            autocomplete="current-password"
+            required
+          >
+        </div>
+
+        <button type="submit" id="loginButton">Entrar no painel</button>
+      </form>
+    </section>
+
+    <footer class="login-footer">
+      Plataforma demonstrativa<br>
+      Desenvolvido por <strong>AW TECHNOLOGY</strong>
+    </footer>
+  </main>
+
+  <script>
+    const API_URL = 'https://catalogo-backend-e14g.onrender.com/api/auth/login';
+
+    const form = document.getElementById('loginForm');
+    const message = document.getElementById('msg');
+    const loginButton = document.getElementById('loginButton');
+
+    if (localStorage.getItem('token')) {
+      window.location.replace('/adm/painel.html');
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      message.textContent = '';
+      message.className = 'message';
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      loginButton.disabled = true;
+      loginButton.textContent = 'Verificando acesso...';
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(
+            data.error || data.message || 'E-mail ou senha inválidos.'
+          );
+        }
+
+        if (!data.token) {
+          throw new Error('O servidor não retornou um token de acesso.');
+        }
+
+        localStorage.setItem('token', data.token);
+
+        window.location.replace('/adm/painel.html');
+
+      } catch (error) {
+        message.textContent = error.message || 'Erro ao conectar com o servidor.';
+        message.className = 'message error';
+
+        loginButton.disabled = false;
+        loginButton.textContent = 'Entrar no painel';
+      }
+    });
+  </script>
+</body>
+</html>
