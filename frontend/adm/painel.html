@@ -1,9 +1,15 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#20201e">
+
+  <meta
+    name="description"
+    content="Painel administrativo para gerenciamento do catálogo de produtos."
+  >
 
   <title>Painel Administrativo | Catálogo Online</title>
 
@@ -13,6 +19,7 @@
 <body>
   <div class="admin-layout">
 
+    <!-- MENU LATERAL -->
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <span class="brand-mark">C</span>
@@ -22,74 +29,109 @@
         </div>
       </div>
 
-      <nav class="sidebar-nav">
+      <nav class="sidebar-nav" aria-label="Navegação administrativa">
         <span class="nav-label">GERENCIAMENTO</span>
 
-        <button class="nav-item active" data-section="dashboard">
-          <span class="nav-icon">▦</span>
+        <button
+          type="button"
+          class="nav-item active"
+          data-section="dashboard"
+          aria-current="page"
+        >
+          <span class="nav-icon" aria-hidden="true">▦</span>
           Dashboard
         </button>
 
-        <button class="nav-item" data-section="products">
-          <span class="nav-icon">▤</span>
+        <button
+          type="button"
+          class="nav-item"
+          data-section="products"
+        >
+          <span class="nav-icon" aria-hidden="true">▤</span>
           Produtos
         </button>
       </nav>
 
       <div class="sidebar-footer">
         <div class="admin-profile">
-          <div class="profile-avatar">A</div>
+          <div class="profile-avatar" aria-hidden="true">A</div>
+
           <div class="profile-info">
             <strong>Administrador</strong>
             <small>Acesso administrativo</small>
           </div>
         </div>
 
-        <button class="logout-button" id="logoutButton">
-          <span>↪</span>
+        <button
+          type="button"
+          class="logout-button"
+          id="logoutButton"
+        >
+          <span aria-hidden="true">↪</span>
           Sair do painel
         </button>
       </div>
     </aside>
 
+    <!-- CONTEÚDO PRINCIPAL -->
     <main class="main-content">
 
+      <!-- BARRA SUPERIOR -->
       <header class="topbar">
-        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+        <button
+          type="button"
+          class="menu-toggle"
+          id="menuToggle"
+          aria-label="Abrir menu"
+          aria-controls="sidebar"
+          aria-expanded="false"
+        >
           ☰
         </button>
 
         <div class="breadcrumb">
           <span>Administração</span>
-          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
           <strong id="pageTitle">Dashboard</strong>
         </div>
 
         <div class="topbar-right">
-          <span class="status-indicator"></span>
+          <span class="status-indicator" aria-hidden="true"></span>
           <span>Área administrativa</span>
         </div>
       </header>
 
       <div class="content-wrapper">
 
-        <section class="page-section active" id="dashboardSection">
+        <!-- DASHBOARD -->
+        <section
+          class="page-section active"
+          id="dashboardSection"
+          aria-labelledby="dashboardTitle"
+        >
           <div class="page-heading">
             <div>
               <span class="eyebrow">VISÃO GERAL</span>
-              <h1>Dashboard</h1>
+              <h1 id="dashboardTitle">Dashboard</h1>
               <p>Acompanhe e gerencie o catálogo da sua loja.</p>
             </div>
 
-            <button class="primary-button" id="newProductButton">
-              <span>＋</span>
+            <button
+              type="button"
+              class="primary-button"
+              id="newProductButton"
+            >
+              <span aria-hidden="true">＋</span>
               Novo produto
             </button>
           </div>
 
+          <!-- INDICADORES -->
           <div class="stats-grid">
+
             <article class="stat-card">
-              <div class="stat-icon bronze">▤</div>
+              <div class="stat-icon bronze" aria-hidden="true">▤</div>
+
               <div>
                 <span>Total de produtos</span>
                 <strong id="totalProducts">—</strong>
@@ -98,7 +140,8 @@
             </article>
 
             <article class="stat-card">
-              <div class="stat-icon green">✓</div>
+              <div class="stat-icon green" aria-hidden="true">✓</div>
+
               <div>
                 <span>Em estoque</span>
                 <strong id="inStockProducts">—</strong>
@@ -107,15 +150,18 @@
             </article>
 
             <article class="stat-card">
-              <div class="stat-icon red">!</div>
+              <div class="stat-icon red" aria-hidden="true">!</div>
+
               <div>
                 <span>Sem estoque</span>
                 <strong id="outOfStockProducts">—</strong>
                 <small>Precisam de reposição</small>
               </div>
             </article>
+
           </div>
 
+          <!-- PRODUTOS RECENTES -->
           <section class="panel-card">
             <div class="panel-card-heading">
               <div>
@@ -123,7 +169,11 @@
                 <h2>Produtos recentes</h2>
               </div>
 
-              <button class="text-button" data-section="products">
+              <button
+                type="button"
+                class="text-button"
+                data-section="products"
+              >
                 Ver todos →
               </button>
             </div>
@@ -132,12 +182,13 @@
               <table>
                 <thead>
                   <tr>
-                    <th>PRODUTO</th>
-                    <th>CATEGORIA</th>
-                    <th>PREÇO</th>
-                    <th>ESTOQUE</th>
+                    <th scope="col">PRODUTO</th>
+                    <th scope="col">CATEGORIA</th>
+                    <th scope="col">PREÇO</th>
+                    <th scope="col">ESTOQUE</th>
                   </tr>
                 </thead>
+
                 <tbody id="recentProducts">
                   <tr>
                     <td colspan="4" class="empty-state">
@@ -150,29 +201,42 @@
           </section>
         </section>
 
-        <section class="page-section" id="productsSection">
+        <!-- GERENCIAMENTO DE PRODUTOS -->
+        <section
+          class="page-section"
+          id="productsSection"
+          aria-labelledby="productsTitle"
+        >
           <div class="page-heading">
             <div>
               <span class="eyebrow">GERENCIAMENTO DO CATÁLOGO</span>
-              <h1>Produtos</h1>
+              <h1 id="productsTitle">Produtos</h1>
               <p>Cadastre, consulte e atualize os produtos da loja.</p>
             </div>
 
-            <button class="primary-button" id="addProductButton">
-              <span>＋</span>
+            <button
+              type="button"
+              class="primary-button"
+              id="addProductButton"
+            >
+              <span aria-hidden="true">＋</span>
               Adicionar produto
             </button>
           </div>
 
           <section class="panel-card">
+
+            <!-- BUSCA -->
             <div class="toolbar">
               <div class="search-box">
-                <span>⌕</span>
+                <span aria-hidden="true">⌕</span>
+
                 <input
                   type="search"
                   id="productSearch"
                   placeholder="Buscar produto..."
                   autocomplete="off"
+                  aria-label="Buscar produtos"
                 >
               </div>
 
@@ -181,17 +245,19 @@
               </span>
             </div>
 
+            <!-- TABELA -->
             <div class="table-container">
               <table>
                 <thead>
                   <tr>
-                    <th>PRODUTO</th>
-                    <th>CATEGORIA</th>
-                    <th>PREÇO</th>
-                    <th>ESTOQUE</th>
-                    <th>AÇÕES</th>
+                    <th scope="col">PRODUTO</th>
+                    <th scope="col">CATEGORIA</th>
+                    <th scope="col">PREÇO</th>
+                    <th scope="col">ESTOQUE</th>
+                    <th scope="col">AÇÕES</th>
                   </tr>
                 </thead>
+
                 <tbody id="productsTable">
                   <tr>
                     <td colspan="5" class="empty-state">
@@ -202,11 +268,22 @@
               </table>
             </div>
 
-            <div class="pagination" id="pagination"></div>
+            <!-- PAGINAÇÃO -->
+            <div
+              class="pagination"
+              id="pagination"
+              aria-label="Paginação dos produtos"
+            ></div>
+
           </section>
         </section>
 
-        <section class="page-section" id="productFormSection">
+        <!-- FORMULÁRIO DE PRODUTO -->
+        <section
+          class="page-section"
+          id="productFormSection"
+          aria-labelledby="formTitle"
+        >
           <div class="page-heading">
             <div>
               <span class="eyebrow">GERENCIAMENTO DO CATÁLOGO</span>
@@ -216,23 +293,30 @@
           </div>
 
           <section class="panel-card form-card">
-            <form id="productForm">
+
+            <form id="productForm" novalidate>
               <input type="hidden" id="productId">
 
               <div class="form-grid">
+
+                <!-- NOME -->
                 <div class="form-field full-width">
                   <label for="productName">Nome do produto *</label>
+
                   <input
                     type="text"
                     id="productName"
                     maxlength="150"
                     required
                     placeholder="Ex.: Produto especial"
+                    autocomplete="off"
                   >
                 </div>
 
+                <!-- CATEGORIA -->
                 <div class="form-field">
                   <label for="productCategory">Categoria</label>
+
                   <input
                     type="text"
                     id="productCategory"
@@ -241,8 +325,10 @@
                   >
                 </div>
 
+                <!-- PREÇO -->
                 <div class="form-field">
                   <label for="productPrice">Preço (R$) *</label>
+
                   <input
                     type="number"
                     id="productPrice"
@@ -253,8 +339,10 @@
                   >
                 </div>
 
+                <!-- ESTOQUE -->
                 <div class="form-field">
                   <label for="productStock">Quantidade em estoque</label>
+
                   <input
                     type="number"
                     id="productStock"
@@ -264,18 +352,39 @@
                   >
                 </div>
 
+                <!-- UPLOAD DE IMAGEM -->
                 <div class="form-field full-width">
-                  <label for="productImage">URL da imagem</label>
+                  <label for="productImage">Imagem do produto</label>
+
                   <input
-                    type="url"
+                    type="file"
                     id="productImage"
-                    placeholder="https://..."
+                    accept=".jpg,.jpeg,.png,.webp,.gif,.avif,image/jpeg,image/png,image/webp,image/gif,image/avif"
                   >
-                  <small>Informe o endereço online da imagem do produto.</small>
+
+                  <small>
+                    Selecione uma imagem JPG, JPEG, PNG, WEBP, GIF ou AVIF.
+                    Tamanho máximo: 5 MB.
+                  </small>
+
+                  <!-- PRÉ-VISUALIZAÇÃO -->
+                  <div
+                    id="imagePreviewContainer"
+                    class="image-preview-container"
+                    hidden
+                  >
+                    <img
+                      id="imagePreview"
+                      src=""
+                      alt="Pré-visualização da imagem do produto"
+                    >
+                  </div>
                 </div>
 
+                <!-- DESCRIÇÃO -->
                 <div class="form-field full-width">
                   <label for="productDescription">Descrição</label>
+
                   <textarea
                     id="productDescription"
                     rows="5"
@@ -283,19 +392,35 @@
                     placeholder="Descreva as características do produto..."
                   ></textarea>
                 </div>
+
               </div>
 
+              <!-- AÇÕES DO FORMULÁRIO -->
               <div class="form-actions">
-                <button type="button" class="secondary-button" id="cancelFormButton">
+                <button
+                  type="button"
+                  class="secondary-button"
+                  id="cancelFormButton"
+                >
                   Cancelar
                 </button>
 
-                <button type="submit" class="primary-button" id="saveProductButton">
+                <button
+                  type="submit"
+                  class="primary-button"
+                  id="saveProductButton"
+                >
                   Salvar produto
                 </button>
               </div>
 
-              <p class="form-message" id="formMessage" role="status"></p>
+              <p
+                class="form-message"
+                id="formMessage"
+                role="status"
+                aria-live="polite"
+              ></p>
+
             </form>
           </section>
         </section>
@@ -304,7 +429,13 @@
     </main>
   </div>
 
-  <div class="toast" id="toast" role="status"></div>
+  <!-- NOTIFICAÇÕES -->
+  <div
+    class="toast"
+    id="toast"
+    role="status"
+    aria-live="polite"
+  ></div>
 
   <script src="admin.js" defer></script>
 </body>
