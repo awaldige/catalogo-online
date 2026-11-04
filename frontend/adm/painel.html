@@ -1,0 +1,311 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#20201e">
+
+  <title>Painel Administrativo | Catálogo Online</title>
+
+  <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+  <div class="admin-layout">
+
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <span class="brand-mark">C</span>
+        <div>
+          <strong>CATÁLOGO</strong>
+          <small>PAINEL ADMINISTRATIVO</small>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-label">GERENCIAMENTO</span>
+
+        <button class="nav-item active" data-section="dashboard">
+          <span class="nav-icon">▦</span>
+          Dashboard
+        </button>
+
+        <button class="nav-item" data-section="products">
+          <span class="nav-icon">▤</span>
+          Produtos
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="admin-profile">
+          <div class="profile-avatar">A</div>
+          <div class="profile-info">
+            <strong>Administrador</strong>
+            <small>Acesso administrativo</small>
+          </div>
+        </div>
+
+        <button class="logout-button" id="logoutButton">
+          <span>↪</span>
+          Sair do painel
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <header class="topbar">
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+          ☰
+        </button>
+
+        <div class="breadcrumb">
+          <span>Administração</span>
+          <span class="breadcrumb-separator">/</span>
+          <strong id="pageTitle">Dashboard</strong>
+        </div>
+
+        <div class="topbar-right">
+          <span class="status-indicator"></span>
+          <span>Área administrativa</span>
+        </div>
+      </header>
+
+      <div class="content-wrapper">
+
+        <section class="page-section active" id="dashboardSection">
+          <div class="page-heading">
+            <div>
+              <span class="eyebrow">VISÃO GERAL</span>
+              <h1>Dashboard</h1>
+              <p>Acompanhe e gerencie o catálogo da sua loja.</p>
+            </div>
+
+            <button class="primary-button" id="newProductButton">
+              <span>＋</span>
+              Novo produto
+            </button>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card">
+              <div class="stat-icon bronze">▤</div>
+              <div>
+                <span>Total de produtos</span>
+                <strong id="totalProducts">—</strong>
+                <small>Produtos cadastrados</small>
+              </div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-icon green">✓</div>
+              <div>
+                <span>Em estoque</span>
+                <strong id="inStockProducts">—</strong>
+                <small>Com estoque disponível</small>
+              </div>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-icon red">!</div>
+              <div>
+                <span>Sem estoque</span>
+                <strong id="outOfStockProducts">—</strong>
+                <small>Precisam de reposição</small>
+              </div>
+            </article>
+          </div>
+
+          <section class="panel-card">
+            <div class="panel-card-heading">
+              <div>
+                <span class="eyebrow">CATÁLOGO</span>
+                <h2>Produtos recentes</h2>
+              </div>
+
+              <button class="text-button" data-section="products">
+                Ver todos →
+              </button>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>PRODUTO</th>
+                    <th>CATEGORIA</th>
+                    <th>PREÇO</th>
+                    <th>ESTOQUE</th>
+                  </tr>
+                </thead>
+                <tbody id="recentProducts">
+                  <tr>
+                    <td colspan="4" class="empty-state">
+                      Carregando produtos...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section class="page-section" id="productsSection">
+          <div class="page-heading">
+            <div>
+              <span class="eyebrow">GERENCIAMENTO DO CATÁLOGO</span>
+              <h1>Produtos</h1>
+              <p>Cadastre, consulte e atualize os produtos da loja.</p>
+            </div>
+
+            <button class="primary-button" id="addProductButton">
+              <span>＋</span>
+              Adicionar produto
+            </button>
+          </div>
+
+          <section class="panel-card">
+            <div class="toolbar">
+              <div class="search-box">
+                <span>⌕</span>
+                <input
+                  type="search"
+                  id="productSearch"
+                  placeholder="Buscar produto..."
+                  autocomplete="off"
+                >
+              </div>
+
+              <span class="result-count" id="productCount">
+                Carregando...
+              </span>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>PRODUTO</th>
+                    <th>CATEGORIA</th>
+                    <th>PREÇO</th>
+                    <th>ESTOQUE</th>
+                    <th>AÇÕES</th>
+                  </tr>
+                </thead>
+                <tbody id="productsTable">
+                  <tr>
+                    <td colspan="5" class="empty-state">
+                      Carregando produtos...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="pagination" id="pagination"></div>
+          </section>
+        </section>
+
+        <section class="page-section" id="productFormSection">
+          <div class="page-heading">
+            <div>
+              <span class="eyebrow">GERENCIAMENTO DO CATÁLOGO</span>
+              <h1 id="formTitle">Novo produto</h1>
+              <p>Preencha as informações do produto.</p>
+            </div>
+          </div>
+
+          <section class="panel-card form-card">
+            <form id="productForm">
+              <input type="hidden" id="productId">
+
+              <div class="form-grid">
+                <div class="form-field full-width">
+                  <label for="productName">Nome do produto *</label>
+                  <input
+                    type="text"
+                    id="productName"
+                    maxlength="150"
+                    required
+                    placeholder="Ex.: Produto especial"
+                  >
+                </div>
+
+                <div class="form-field">
+                  <label for="productCategory">Categoria</label>
+                  <input
+                    type="text"
+                    id="productCategory"
+                    maxlength="100"
+                    placeholder="Ex.: Eletrônicos"
+                  >
+                </div>
+
+                <div class="form-field">
+                  <label for="productPrice">Preço (R$) *</label>
+                  <input
+                    type="number"
+                    id="productPrice"
+                    min="0"
+                    step="0.01"
+                    required
+                    placeholder="0,00"
+                  >
+                </div>
+
+                <div class="form-field">
+                  <label for="productStock">Quantidade em estoque</label>
+                  <input
+                    type="number"
+                    id="productStock"
+                    min="0"
+                    step="1"
+                    value="0"
+                  >
+                </div>
+
+                <div class="form-field full-width">
+                  <label for="productImage">URL da imagem</label>
+                  <input
+                    type="url"
+                    id="productImage"
+                    placeholder="https://..."
+                  >
+                  <small>Informe o endereço online da imagem do produto.</small>
+                </div>
+
+                <div class="form-field full-width">
+                  <label for="productDescription">Descrição</label>
+                  <textarea
+                    id="productDescription"
+                    rows="5"
+                    maxlength="2000"
+                    placeholder="Descreva as características do produto..."
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="secondary-button" id="cancelFormButton">
+                  Cancelar
+                </button>
+
+                <button type="submit" class="primary-button" id="saveProductButton">
+                  Salvar produto
+                </button>
+              </div>
+
+              <p class="form-message" id="formMessage" role="status"></p>
+            </form>
+          </section>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>
