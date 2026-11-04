@@ -6,6 +6,7 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,7 +15,9 @@ const PORT = process.env.PORT || 3000;
 const allowedOrigins = [
   'https://catalogo-online-seven.vercel.app',
   'http://localhost:3000',
-  'http://127.0.0.1:3000'
+  'http://127.0.0.1:3000',
+  'http://localhost:5501',
+  'http://127.0.0.1:5501'
 ];
 
 app.use(cors({
@@ -32,6 +35,7 @@ app.get('/', (req, res) => {
 // Rotas da API
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 // Inicialização do servidor
 async function startServer() {
