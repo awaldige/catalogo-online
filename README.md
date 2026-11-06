@@ -1,82 +1,221 @@
-# 🛍️ Catálogo Online — Full Stack E-commerce Experience
+# 🛍️ Catálogo Online — AW TECHNOLOGY
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Frontend-Vercel-black?style=for-the-badge&logo=vercel" alt="Vercel">
-  <img src="https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Render">
-  <img src="https://img.shields.io/badge/Database-MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB">
-  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript">
-</p>
+Catálogo digital de produtos desenvolvido como projeto Full Stack pela **AW TECHNOLOGY**, com foco em experiência do usuário, organização de produtos e gerenciamento administrativo.
 
-Este é um projeto **Full Stack** de um catálogo de produtos completo, focado em performance e usabilidade. Desenvolvido como destaque de portfólio por **André Waldige**, o projeto demonstra domínio na integração entre frontend e backend com persistência de dados em nuvem.
+A aplicação reúne uma vitrine de produtos, filtros de busca, carrinho demonstrativo e painel administrativo para gerenciamento do catálogo.
+
+🔗 **Demonstração online:** https://catalogo-online-seven.vercel.app/
 
 ---
 
-## 🖼️ Demonstração
+## 📸 Demonstração
 
-![Captura de tela 2026-04-02 154934](https://github.com/user-attachments/assets/e4fb6276-ce01-4378-8daa-72c3d49508e4)
-![Captura de tela 2026-04-02 155311](https://github.com/user-attachments/assets/d8cf6dc7-50fc-4d59-b96f-52eba1d27ab7)
-![Captura de tela 2026-04-02 155231](https://github.com/user-attachments/assets/a54946c5-b35c-40ad-b971-540bb17fce77)
-![Captura de tela 2026-04-02 155208](https://github.com/user-attachments/assets/90261590-d117-4ab0-86aa-1dc6bde90ef5)
+### Página inicial
+![Página inicial](https://github.com/user-attachments/assets/e4fb6276-ce01-4378-8daa-72c3d49508e4)
 
+### Catálogo de produtos
+![Catálogo de produtos](https://github.com/user-attachments/assets/d8cf6dc7-50fc-4d59-b96f-52eba1d27ab7)
 
-> [!IMPORTANT]
-> **Nota sobre o carregamento:** O backend está hospedado no plano gratuito do **Render**. Por isso, o servidor entra em repouso após inatividade. **O primeiro acesso pode levar de 30 a 60 segundos** para o servidor "acordar". Após isso, o uso é instantâneo.
+### Carrinho de compras
+![Carrinho de compras](https://github.com/user-attachments/assets/a54946c5-b35c-40ad-b971-540bb17fce77)
 
----
-
-## ✨ Funcionalidades Principais
-
-* **✅ Gestão de Produtos:** Listagem dinâmica com sistema de **paginação** eficiente.
-* **🔍 Filtros Avançados:** Busca refinada por nome, categoria, faixa de preço e estoque mínimo.
-* **🛒 Carrinho de Compras:** * Controle total de quantidade de itens.
-    * Persistência automática via **LocalStorage** (não perde os dados ao atualizar).
-* **📦 Painel Administrativo:** Área exclusiva para **CRUD** (cadastro, edição e exclusão) de produtos.
-* **🖼️ Imagens Dinâmicas:** Gestão de exibição via URLs integradas ao banco de dados.
-* **⚙️ API RESTful:** Comunicação assíncrona robusta entre cliente e servidor.
+### Painel administrativo
+![Painel administrativo](https://github.com/user-attachments/assets/90261590-d117-4ab0-86aa-1dc6bde90ef5)
 
 ---
 
-## 🚀 Tecnologias Utilizadas
+## ✨ Funcionalidades
 
-### **Frontend**
-* **HTML5 / CSS3** (Design responsivo e mobile-first)
-* **JavaScript (Vanilla)** (Manipulação de DOM e Fetch API)
+### Catálogo
+- Exibição dinâmica de produtos.
+- Pesquisa por nome.
+- Filtros por categoria.
+- Filtro por faixa de preço.
+- Filtro por estoque mínimo.
+- Paginação de produtos.
+- Exibição de imagens dos produtos.
 
-### **Backend**
-* **Node.js & Express** (Arquitetura de rotas e middlewares)
-* **MongoDB Atlas** (Banco de dados NoSQL na nuvem)
+### Carrinho demonstrativo
+- Adição e remoção de produtos.
+- Alteração de quantidades.
+- Cálculo do subtotal.
+- Persistência dos itens com LocalStorage.
+
+### Painel administrativo
+- Acesso por autenticação.
+- Gerenciamento de produtos.
+- Cadastro, edição e exclusão de produtos.
+- Gerenciamento de imagens.
+- Upload de imagens integrado ao Cloudinary.
+
+### Backend e API
+- API REST desenvolvida com Express.
+- Integração com MongoDB Atlas.
+- Modelagem de dados com Mongoose.
+- Rotas para gerenciamento de produtos e usuários.
+- Upload e armazenamento de imagens na nuvem.
 
 ---
 
-## 📂 Estrutura do Projeto
+## 🛠️ Tecnologias utilizadas
+
+**Frontend**
+- HTML5
+- CSS3
+- JavaScript
+
+**Backend**
+- Node.js
+- Express
+- MongoDB Atlas
+- Mongoose
+- JSON Web Token (JWT)
+- bcryptjs
+- Multer
+- Cloudinary
+
+**Hospedagem e serviços**
+- Vercel — frontend
+- Render — backend
+- MongoDB Atlas — banco de dados
+- Cloudinary — armazenamento de imagens
+
+---
+
+## 📁 Estrutura do projeto
 
 ```text
 catalogo-online/
-├── frontend/         # Interface do usuário e lógica de cliente
-├── backend/          # Servidor Node.js, Models e Rotas da API
-└── README.md         # Documentação
-⚙️ Como Executar Localmente
-Clonar o repositório:
+│
+├── frontend/
+│   ├── adm/
+│   │   ├── index.html
+│   │   ├── painel.html
+│   │   ├── admin.css
+│   │   └── admin.js
+│   │
+│   ├── assets/
+│   │   └── img/
+│   │
+│   ├── css/
+│   │   └── style.css
+│   │
+│   ├── js/
+│   │   └── script.js
+│   │
+│   └── index.html
+│
+├── backend/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── server.js
+│   └── package.json
+│
+├── README.md
+└── .gitignore
+```
 
-Bash
-git clone [https://github.com/awaldige/catalogo-online.git](https://github.com/awaldige/catalogo-online.git)
+---
+
+## ⚙️ Como executar localmente
+
+### 1. Pré-requisitos
+
+- Node.js
+- npm
+- Conta no MongoDB Atlas
+- Conta no Cloudinary
+- Visual Studio Code (recomendado)
+
+### 2. Clonar o repositório
+
+```bash
+git clone https://github.com/awaldige/catalogo-online.git
+```
+
+```bash
 cd catalogo-online
-Configurar o Backend:
+```
 
-Bash
+### 3. Configurar o backend
+
+```bash
 cd backend
 npm install
-# Crie um arquivo .env com PORT=3000 e MONGODB_URI=sua_conexao
-node server.js
-Abrir o Frontend:
-Basta abrir o arquivo frontend/index.html ou usar a extensão Live Server no VS Code.
+```
 
-🔗 Links Oficiais
-🚀 Projeto Live: Acesse aqui
+Crie um arquivo chamado `.env` dentro da pasta `backend`:
 
-📡 API Endpoint: Verificar no Render
+```env
+PORT=3000
+MONGODB_URI=sua_string_de_conexao_mongodb
 
-👨‍💻 Autor
-André Waldige — Desenvolvedor Web
+CLOUDINARY_CLOUD_NAME=seu_cloud_name
+CLOUDINARY_API_KEY=sua_api_key
+CLOUDINARY_API_SECRET=sua_api_secret
+```
 
-⭐ Projeto criado para fins de estudo e portfólio.
+Substitua os valores de exemplo pelas credenciais dos respectivos serviços.
+
+**Importante:** nunca compartilhe ou envie o arquivo `.env` para o GitHub. As credenciais devem permanecer protegidas.
+
+### 4. Iniciar o backend
+
+Para iniciar em modo de desenvolvimento:
+
+```bash
+npm run dev
+```
+
+Ou iniciar normalmente:
+
+```bash
+npm start
+```
+
+### 5. Abrir o frontend
+
+Abra a pasta `frontend` no Visual Studio Code e execute o arquivo `index.html` com a extensão Live Server.
+
+---
+
+## 🌐 Links do projeto
+
+- **Aplicação:** https://catalogo-online-seven.vercel.app/
+- **Backend:** https://catalogo-backend-e14g.onrender.com
+- **Status da API:** https://catalogo-backend-e14g.onrender.com/api/status
+- **Repositório:** https://github.com/awaldige/catalogo-online
+
+*Observação: em hospedagens gratuitas, o primeiro acesso ao backend após um período de inatividade pode apresentar um tempo maior de resposta.*
+
+---
+
+## 🔐 Segurança
+
+- Credenciais e variáveis de ambiente mantidas fora do repositório.
+- Autenticação administrativa.
+- Senhas protegidas com bcryptjs.
+- Tokens JWT para autenticação.
+- Upload de imagens por serviço externo.
+
+---
+
+## 📌 Sobre o projeto
+
+O Catálogo Online é um projeto demonstrativo desenvolvido pela **AW TECHNOLOGY** para apresentar possibilidades de criação de soluções digitais para negócios.
+
+A aplicação demonstra a integração entre frontend, backend, banco de dados e serviços externos, com recursos de catálogo, carrinho e administração.
+
+O carrinho possui finalidade demonstrativa e não representa uma operação comercial com processamento real de pagamentos.
+
+---
+
+## 👨‍💻 Desenvolvedor
+
+**André Waldige**  
+**AW TECHNOLOGY — Desenvolvimento de Software**
+
+GitHub: https://github.com/awaldige
+
