@@ -9,18 +9,14 @@ A aplicação reúne uma vitrine de produtos, filtros de busca, carrinho demonst
 ---
 
 ## 📸 Demonstração
+<img width="1361" height="768" alt="home -catalogo" src="https://github.com/user-attachments/assets/318b91e3-7447-41cc-8371-b6f9fcd14feb" />
 
-### Página inicial
-![Página inicial](https://github.com/user-attachments/assets/e4fb6276-ce01-4378-8daa-72c3d49508e4)
+<img width="1362" height="768" alt="produtos" src="https://github.com/user-attachments/assets/53faeb0f-1790-464b-87d1-8c2d3c7b036a" />
 
-### Catálogo de produtos
-![Catálogo de produtos](https://github.com/user-attachments/assets/d8cf6dc7-50fc-4d59-b96f-52eba1d27ab7)
+<img width="1364" height="752" alt="login" src="https://github.com/user-attachments/assets/e98dbbde-5246-4996-9a31-081f0b5535e7" />
 
-### Carrinho de compras
-![Carrinho de compras](https://github.com/user-attachments/assets/a54946c5-b35c-40ad-b971-540bb17fce77)
+<img width="1366" height="764" alt="dashboard-catalogo" src="https://github.com/user-attachments/assets/800ddea6-30fa-4e05-9f0b-94426280dd55" />
 
-### Painel administrativo
-![Painel administrativo](https://github.com/user-attachments/assets/90261590-d117-4ab0-86aa-1dc6bde90ef5)
 
 ---
 
